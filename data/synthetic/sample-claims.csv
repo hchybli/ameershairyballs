@@ -1,0 +1,6 @@
+external_claim_id,patient_ref,payer_name,cdt_code,fee_billed,fee_allowed,tooth,quadrant
+SYN-CLM-001,SYN-PAT-001,Delta Dental,D1110,125.00,95.00,,
+SYN-CLM-001,SYN-PAT-001,Delta Dental,D0220,35.00,28.00,3,
+SYN-CLM-002,SYN-PAT-002,MetLife Dental,D4341,275.00,220.00,,UR
+SYN-CLM-003,SYN-PAT-003,Cigna Dental,D2950,185.00,150.00,14,
+SYN-CLM-003,SYN-PAT-003,Cigna Dental,D2740,1200.00,980.00,14,

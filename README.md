@@ -37,6 +37,16 @@ Backstop sits on top of a clinic's existing PMS, checks every claim before submi
 - **AI:** Anthropic API (Sonnet + Haiku)
 - **Hosting:** AWS
 
+## Quick start (Phase 0)
+
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm test         # CSV parser tests
+```
+
+See [docs/PHASE_0.md](./docs/PHASE_0.md) for Supabase setup and CSV upload instructions.
+
 ## Working in Cursor
 
 Before asking the AI to build something, attach the spec:
