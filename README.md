@@ -19,8 +19,8 @@ Backstop sits on top of a clinic's existing PMS, checks every claim before submi
 ## @hchybli — review this build
 
 1. `git pull origin main && npm install && npm run dev`
-2. Follow **[docs/DEMO_WALKTHROUGH.md](./docs/DEMO_WALKTHROUGH.md)** (~5 min)
-3. Comment on [roadmap decisions](./docs/FEATURE_ROADMAP.md#decisions-resolve-before-phase-1)
+2. Read **[docs/collaborators/MESSAGE_FOR_HCHYBLI.md](./docs/collaborators/MESSAGE_FOR_HCHYBLI.md)**
+3. Follow **[docs/DEMO_WALKTHROUGH.md](./docs/DEMO_WALKTHROUGH.md)** (~5 min)
 
 ## New here? Start here
 
