@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md
 
 **Working name:** Backstop (placeholder — replace)  
-**Status:** pre-build / spec. No real PHI in repo yet.  
-**This doc is the source of truth. Keep it current.**
+**Status:** Phase 0 done. Phase 1 next.  
+**Source of truth:** this file + [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md). Keep both current.
 
 ## Vision
 
@@ -96,6 +96,8 @@ outcomes    (id, claim_id, result, paid_amount, observed_at)    -- append-only
 
 ## Build phases
 
+See [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) for feature tiers, denial drivers, and the agreed build sequence.
+
 | Phase | Deliverable |
 |-------|-------------|
 | **0** | Repo, schema, CSV ingest, synthetic data only |
@@ -118,10 +120,10 @@ Charting, scheduling, imaging bridges, recare, patient comms, sensors, dictation
 
 ## Working in Cursor
 
-- `@PROJECT_OVERVIEW.md` in chat before generating.
+- Attach `@PROJECT_OVERVIEW.md` and `@docs/FEATURE_ROADMAP.md` in chat before generating.
 - Rules live in `.cursor/rules/project.mdc`.
-- Before a feature, have the AI state which part of this doc it implements.
+- Before a feature, state which roadmap tier/phase and which overview section it implements.
 
 ## Open questions
 
-See [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md).
+Decisions that affect the build are tracked in [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md#decisions-resolve-before-phase-1). General product questions remain in [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md).

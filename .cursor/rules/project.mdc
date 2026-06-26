@@ -7,7 +7,7 @@ alwaysApply: true
 
 You are building Backstop, a pre-submission billing autopilot for small dental clinics.
 
-**Current scope:** dental billing only (Stage 1). Read `PROJECT_OVERVIEW.md` before implementing features.
+**Current scope:** dental billing only (Stage 1). Read `PROJECT_OVERVIEW.md` and `docs/FEATURE_ROADMAP.md` before implementing features.
 
 ## ALWAYS
 
@@ -26,4 +26,4 @@ You are building Backstop, a pre-submission billing autopilot for small dental c
 
 ## Before implementing
 
-State which section of `PROJECT_OVERVIEW.md` (build list item, phase, or data model table) the work implements.
+State which **roadmap phase/tier** (`docs/FEATURE_ROADMAP.md`) and which **overview section** (`PROJECT_OVERVIEW.md`) the work implements. Do not build Tier D or out-of-scope items.

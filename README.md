@@ -6,25 +6,32 @@
 |---|---|
 | **Repo** | [github.com/hchybli/ameershairyballs](https://github.com/hchybli/ameershairyballs) |
 | **Collaborators** | [@hchybli](https://github.com/hchybli), [@ameerabouhouli](https://github.com/ameerabouhouli) |
-| **Status** | Pre-build — spec and docs only. No real PHI. Synthetic data only. |
+| **Status** | Phase 0 done. **Read [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) before building Phase 1.** Synthetic data only. |
 
 ## What this project does
 
-Backstop sits on top of a clinic's existing PMS, checks every claim before submission, auto-fixes safe items, flags the rest, and captures payer outcomes. See [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) for the full spec.
+Backstop sits on top of a clinic's existing PMS, checks every claim before submission, auto-fixes safe items, flags the rest, and captures payer outcomes.
+
+**Source of truth (read both before building):**
+- [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) — vision, scope, stack, data model
+- [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — feature tiers, build order, denial drivers
 
 ## New here? Start here
 
-1. **[docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)** — clone the repo, open it in Cursor, run your first chat with the AI
-2. **[docs/VERIFY_SHARED_REPO.md](./docs/VERIFY_SHARED_REPO.md)** — quick checklist so both collaborators confirm the shared repo works
-3. **[CONTRIBUTING.md](./CONTRIBUTING.md)** — how we branch, commit, and review together
-4. **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** — source of truth for scope, stack, and data model
+1. **[docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md)** — **read first** — what we build, in what order, and why
+2. **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** — vision, scope, tech stack, data model
+3. **[docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)** — clone the repo, open it in Cursor
+4. **[docs/VERIFY_SHARED_REPO.md](./docs/VERIFY_SHARED_REPO.md)** — confirm the shared repo works
+5. **[CONTRIBUTING.md](./CONTRIBUTING.md)** — how we branch, commit, and review together
 
 ## Docs map
 
 | File | Purpose |
 |------|---------|
-| [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) | Vision, scope, tech stack, data model, build phases |
+| [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) | **Feature tiers, build order, denial drivers — co-source of truth** |
+| [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) | Vision, scope, tech stack, data model, PHI rules |
 | [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md) | Cursor + Git setup for beginners |
+| [docs/PHASE_0.md](./docs/PHASE_0.md) | Run the Phase 0 app locally |
 | [docs/VERIFY_SHARED_REPO.md](./docs/VERIFY_SHARED_REPO.md) | Shared-repo smoke test (both collaborators) |
 | [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md) | Decisions still to make |
 | [CONTRIBUTING.md](./CONTRIBUTING.md) | Collaboration workflow |
@@ -49,10 +56,11 @@ See [docs/PHASE_0.md](./docs/PHASE_0.md) for Supabase setup and CSV upload instr
 
 ## Working in Cursor
 
-Before asking the AI to build something, attach the spec:
+Before asking the AI to build something, attach both specs:
 
 ```
-@PROJECT_OVERVIEW.md implement Phase 0: CSV ingest schema
+@PROJECT_OVERVIEW.md @docs/FEATURE_ROADMAP.md
+Implement Phase 1a: CDT validation and audit-risk flags.
 ```
 
 The AI also reads `.cursor/rules/project.mdc` automatically for project conventions.

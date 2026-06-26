@@ -4,9 +4,10 @@ This repo is shared between **@hchybli** and **@ameerabouhouli**. These conventi
 
 ## Before you code
 
-1. Read [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) — especially **Current scope** and **Out of scope**
-2. Check [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md) for unresolved decisions
-3. In Cursor, attach `@PROJECT_OVERVIEW.md` when asking the AI to implement something
+1. Read [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) — vision, scope, PHI rules
+2. Read [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — feature tiers and build order
+3. Check open decisions in the roadmap **Decisions** table
+4. In Cursor, attach `@PROJECT_OVERVIEW.md` and `@docs/FEATURE_ROADMAP.md` when asking the AI to implement something
 
 ## Git workflow
 
