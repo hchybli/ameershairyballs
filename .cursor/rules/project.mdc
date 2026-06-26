@@ -1,0 +1,29 @@
+---
+description: Backstop project conventions — dental billing Stage 1
+alwaysApply: true
+---
+
+# Backstop
+
+You are building Backstop, a pre-submission billing autopilot for small dental clinics.
+
+**Current scope:** dental billing only (Stage 1). Read `PROJECT_OVERVIEW.md` before implementing features.
+
+## ALWAYS
+
+- TypeScript (strict), Next.js 14 App Router, Tailwind, shadcn/ui, Supabase (Postgres)
+- Domain vocab: claims, claim_lines, cdt_code, payer, flag, fix, outcome
+- Dental uses **CDT (D####)** and **837D** — NOT CPT or ICD-10
+- `outcomes` and `fixes` are append-only
+- Multi-tenant; one front-desk person is the user. Auto-fix safe items; flag the rest
+- Synthetic data only until HIPAA BAAs are signed
+
+## NEVER
+
+- Real PHI, secrets, or keys in repo/fixtures/prompts
+- Build ahead of Stage 1: no charting, scheduling, imaging, recare, sensors, dictation
+- A feature that doesn't help get a claim paid clean — flag scope creep
+
+## Before implementing
+
+State which section of `PROJECT_OVERVIEW.md` (build list item, phase, or data model table) the work implements.
