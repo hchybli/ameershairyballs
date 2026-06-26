@@ -80,14 +80,14 @@ Non-negotiable for "pre-submission autopilot." Maps to Phase 1–2 in [PROJECT_O
 | # | Feature | Status | Phase |
 |---|---------|--------|-------|
 | A1 | Claim ingest (CSV; PMS API later) | **Done** | 0 |
-| A2 | Claim scrubbing engine — CDT validation, tooth/quadrant, audit-risk codes | Not started | 1a |
-| A3 | Attachment requirement flags (by CDT + payer) | Not started | 1a |
+| A2 | Claim scrubbing engine — CDT validation, tooth/quadrant, audit-risk codes | **Done** | 1a |
+| A3 | Attachment requirement flags (by CDT + payer) | **Done** | 1a |
 | A4 | Frequency / eligibility warnings (when data available) | Not started | 1b |
-| A5 | Fee vs allowed leakage detection | Not started | 1b |
-| A6 | Auto-fix safe items (logged, append-only) | Not started | 1b |
-| A7 | Flag UI — severity, dollar impact, one-tap approve (no review queue) | Not started | 1b |
-| A8 | Outcome capture — parse 835/ERA, record paid/denied/downcoded | Not started | 2a |
-| A9 | Dashboard — flagged, fixed, paid, dollars recovered | Not started | 2b |
+| A5 | Fee vs allowed leakage detection | **Done** | 1b |
+| A6 | Auto-fix safe items (logged, append-only) | **Partial** — quadrant normalize | 1b |
+| A7 | Flag UI — severity, dollar impact, one-tap approve (no review queue) | **Done** | 1b |
+| A8 | Outcome capture — parse 835/ERA, record paid/denied/downcoded | **Done** — simplified CSV | 2a |
+| A9 | Dashboard — flagged, fixed, paid, dollars recovered | **Done** — v1 | 2b |
 
 ### Tier B — Should have (v1, still Stage 1)
 
@@ -134,10 +134,10 @@ Do not skip ahead. Each phase should be demoable before the next starts.
 
 ```
 ✅ Phase 0   Repo, schema, CSV ingest, synthetic data          [DONE]
-→  Phase 1a  Rule engine (CDT, audit-risk, attachment rules)
-→  Phase 1b  Auto-fix + flag UI (one screen, one-tap approve)
-→  Phase 2a  835/ERA ingest + outcomes table
-→  Phase 2b  Dashboard ($ flagged, denial rate, top flags)
+✅ Phase 1a  Rule engine (CDT, audit-risk, attachment rules)   [DONE]
+✅ Phase 1b  Auto-fix + flag UI (one screen, one-tap approve)   [DONE — v1]
+✅ Phase 2a  835/ERA ingest + outcomes table                   [DONE — simplified CSV]
+✅ Phase 2b  Dashboard ($ flagged, denial rate, top flags)     [DONE — v1]
 →  Phase 3    Payer rule packs + AI narrative / code-vs-notes checks
 →  Phase 4    Open Dental + clearinghouse submit
 ```

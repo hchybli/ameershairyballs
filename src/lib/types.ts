@@ -1,5 +1,14 @@
 /** Domain types for Backstop Stage 1 — dental billing */
 
+export type {
+  ClaimFlag,
+  FlagSeverity,
+  FlagType,
+  ScrubResult,
+} from "@/lib/rules/types";
+
+import type { ScrubResult } from "@/lib/rules/types";
+
 export type ClaimStatus =
   | "ingested"
   | "checking"
@@ -37,4 +46,6 @@ export interface IngestResponse {
   claims: ParsedClaim[];
   errors: string[];
   message: string;
+  scrub: ScrubResult;
+  autoFixes: string[];
 }

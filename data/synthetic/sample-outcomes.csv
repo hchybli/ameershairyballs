@@ -1,0 +1,4 @@
+external_claim_id,result,paid_amount,remark_code,remark_text
+SYN-CLM-001,paid,123.00,,
+SYN-CLM-002,denied,0.00,CO-97,Payment adjusted because benefit maximum has been reached
+SYN-CLM-003,downcoded,850.00,CO-45,Charge exceeds fee schedule/maximum allowable

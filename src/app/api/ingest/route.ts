@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { parseClaimsCsv } from "@/lib/csv/parse-claims-csv";
 import { saveClaimsToSupabase } from "@/lib/ingest/save-claims";
+import { scrubClaimsWithAutoFix } from "@/lib/rules/scrub-claim";
+import { groupAutoFixesByClaim, splitScrubByClaim } from "@/lib/rules/scrub-utils";
+import { recordClaims } from "@/lib/store/demo-store";
 import type { IngestResponse } from "@/lib/types";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
 
@@ -29,20 +32,36 @@ export async function POST(request: Request) {
     );
   }
 
-  const linesIngested = parsed.claims.reduce((sum, c) => sum + c.lines.length, 0);
+  const { flags, summary, autoFixes, claims: fixedClaims } = scrubClaimsWithAutoFix(parsed.claims);
+  const scrub = { flags, summary };
+
+  recordClaims(
+    fixedClaims,
+    splitScrubByClaim(fixedClaims, scrub),
+    groupAutoFixesByClaim(fixedClaims, autoFixes),
+  );
+
+  const linesIngested = fixedClaims.reduce((sum, c) => sum + c.lines.length, 0);
   const shouldSave = saveToDb && isSupabaseConfigured();
+
+  const scrubMessage =
+    summary.flagsOpen === 0
+      ? "All lines passed pre-submission checks."
+      : `${summary.flagsOpen} flag(s) found (${summary.highOrCritical} high/critical) — ~$${summary.estimatedDollarAtRisk.toFixed(0)} at risk.`;
 
   if (shouldSave) {
     try {
-      const saved = await saveClaimsToSupabase(clinicName, parsed.claims);
+      const saved = await saveClaimsToSupabase(clinicName, fixedClaims);
       const response: IngestResponse = {
         mode: "saved",
         clinicName,
         claimsIngested: saved.claimsSaved,
         linesIngested: saved.linesSaved,
-        claims: parsed.claims,
+        claims: fixedClaims,
         errors: parsed.errors,
-        message: `Saved ${saved.claimsSaved} claim(s) and ${saved.linesSaved} line(s) to Supabase.`,
+        scrub,
+        autoFixes,
+        message: `Saved ${saved.claimsSaved} claim(s). ${scrubMessage}`,
       };
       return NextResponse.json(response);
     } catch (err) {
@@ -54,13 +73,13 @@ export async function POST(request: Request) {
   const response: IngestResponse = {
     mode: "preview",
     clinicName,
-    claimsIngested: parsed.claims.length,
+    claimsIngested: fixedClaims.length,
     linesIngested,
-    claims: parsed.claims,
+    claims: fixedClaims,
     errors: parsed.errors,
-    message: isSupabaseConfigured()
-      ? "Parsed successfully (preview mode). Send save=true to persist."
-      : "Parsed successfully. Add Supabase env vars and send save=true to persist.",
+    scrub,
+    autoFixes,
+    message: `Parsed ${fixedClaims.length} claim(s). ${scrubMessage}`,
   };
 
   return NextResponse.json(response);
