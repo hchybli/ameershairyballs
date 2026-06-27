@@ -19,11 +19,14 @@ Build the full software ecosystem for dentistry. Staged:
 
 The billing data moat (Stage 1) is the asset the rest is built on. More clinics → more CDT × payer × outcome coverage → smarter agents → defensible position.
 
+### Beating Archy (the all-in-one rival) — architectural, not feature-racing
+The endgame is an all-in-one practice OS better than Archy. We don't get there by out-featuring a funded full PMS on day one — we get there by **winning the financial core first** (their weakest area: ledger, collections, reporting, audit, insurance edge cases) **without forcing a migration**, then expanding module by module on **one event-sourced spine**. Archy bolts modules together; we grow them from one trunk. To make the expansion additive (not a rebuild), Stage 1 plants these seeds now: a universal append-only event log namespaced by domain (`billing.*` now; `clinical.*` / `schedule.*` / `comms.*` reserved); minimal canonical stubs for the whole practice (patients, providers, appointments, treatment_plans, clinical_notes, imaging_refs, communications, ledger_transactions) so we never re-migrate our own data; an event-derived ledger with built-in audit (inverting Archy's hidden audit logs + confusing ledger); a unified patient_timeline; and a cross-module Jarvis that reads the whole log.
+
 ---
 
 ## Current scope
 
-**This repo builds Stage 1 only: small-clinic dental billing.** Stages 2–4 are direction, not the current build. Do not build ahead of scope.
+**Scaffold the full practice OS now; implement billing only.** Every module's boundary, shell, and contract exists from the start (a Bangalore dev team fills in the non-billing modules against a stable contract), but only billing-related modules are implemented here. Non-billing modules (scheduling, clinical, imaging, comms, patients) are clean, documented empty shells — defined, not built. Foundation correctness comes first, because errors replicate across every module the team builds on top.
 
 ---
 
@@ -79,12 +82,12 @@ Claim built in clinic's PMS
 
 ## Tech stack (confirm before building)
 
-- **Frontend:** Next.js 14 (App Router) + TypeScript + Tailwind + shadcn/ui
-- **Backend:** Next.js server actions / API routes + worker for EDI parsing
-- **DB:** Supabase (Postgres) — HIPAA BAA before any real data, RLS on
+- **Frontend:** React (Vite) + TypeScript + Tailwind + shadcn/ui, mobile-first. No Next.js.
+- **Backend:** Supabase Edge Functions for app/API logic + AWS (Lambda/Fargate) for agent jobs & EDI parsing
+- **DB / Auth:** Supabase (Postgres, Auth, Storage) — HIPAA BAA before any real data, RLS on
 - **AI:** Anthropic API — Sonnet for judgment, Haiku for extraction/classification; agentic execution
 - **EDI:** X12 837D / 835 parsing
-- **Hosting / infra:** AWS. **Email:** Resend
+- **Hosting / infra:** AWS (frontend via S3/CloudFront, compute via Lambda/Fargate) + Supabase managed. **Email:** Resend
 - **Architecture:** multi-tenant from day one (built to scale across clinics)
 
 ---
@@ -146,7 +149,7 @@ You are building Backstop, a pre-submission billing autopilot for small dental c
 Current scope is dental billing only (Stage 1 of a larger ecosystem). Read PROJECT_OVERVIEW.md.
 
 ALWAYS:
-- TypeScript (strict), Next.js 14 App Router, Tailwind, shadcn/ui, Supabase (Postgres).
+- TypeScript (strict), React (Vite), Tailwind, shadcn/ui, Supabase (Postgres), AWS. No Next.js.
 - Domain vocab: claims, claim_lines, cdt_code, payer, flag, fix, outcome.
 - Dental uses CDT (D####) and 837D — NOT CPT or ICD-10.
 - outcomes and fixes are append-only.
@@ -154,8 +157,8 @@ ALWAYS:
 
 NEVER:
 - Real PHI, secrets, or keys in repo/fixtures/prompts. Synthetic data only.
-- Build ahead of Stage 1: no charting/scheduling/imaging/recare/sensors/dictation.
-- A feature that doesn't help get a claim paid clean. Flag scope creep.
+- IMPLEMENT non-billing modules (charting/scheduling/imaging/comms): scaffold their shells + contracts, but the dev team fills them. Don't write their business logic.
+- A feature that doesn't help get a claim paid clean (within billing). Flag scope creep.
 ```
 
 ---

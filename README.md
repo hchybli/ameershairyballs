@@ -1,68 +1,30 @@
-# Backstop
+# Synthetic seed fixtures
 
-**Dental insurance billing platform** — event-sourced, multi-tenant. Engineering handoff to **Bungaroo India**.
+Starter test data for the Phase 1 vertical slice. **All data is fake — no real PHI.**
+Drop these in `/packages/integrations/ingest/fixtures` (or wherever B1 expects them).
 
-| | |
-|---|---|
-| **Repo** | [github.com/hchybli/ameershairyballs](https://github.com/hchybli/ameershairyballs) |
-| **US team** | @hchybli, @ameerabouhouli — product, dental rules, review |
-| **Engineering** | Bungaroo India — implementation |
-| **Status** | Pre-build docs complete — ready for WS-00 |
+## Files
+- `dentrix_export_claims.csv` — Dentrix-style claim export. Feed to the CSV ingest adapter (B1).
+- `era_835.json` — parsed remittance (ERA) matching the claims above. Feed to the outcome loop (B4).
+  Use this now; the raw X12 parser is Phase 2.
+- `eligibility_271.json` — Onederful-style benefit breakdowns. Feed to the eligibility agent (B4).
+- `sample_835.x12` — tiny raw X12 835 for later EDI-parser testing (Phase 2). Not needed for the slice.
+- `generate.py` — the generator. Re-run to regenerate / extend the set.
 
----
+## Built-in test scenarios (each claim exercises a specific path)
+| Claim | Scenario | What it tests |
+|-------|----------|---------------|
+| CLM-5001 | clean paid | the happy path end to end |
+| CLM-5002 | D4341 **denied — missing perio chart** | attachment agent + denial → appeal loop |
+| CLM-5003 | D2740 **downcoded** to D2750 (alternate benefit) | downcode detection + payer intelligence |
+| CLM-5004 | D2391 **underpaid** vs contracted rate | underpayment detection (found money) |
+| CLM-5005 | D1110 **frequency denial** | frequency rules + eligibility cross-check |
+| CLM-5006/7/8 | clean paid | volume for KPI tiles |
 
-## Bungaroo — start here
+## Eligibility scenarios
+- PT-1002: Cigna requires a perio chart for D4341 (drives the attachment alert).
+- PT-1003: dual coverage → coordinate benefits.
+- PT-1004: out-of-network → higher patient responsibility.
+- PT-1005: **cleaning frequency exceeded + annual max nearly gone** → "caught before the chair" alert.
 
-1. **[docs/BUILD_READINESS.md](./docs/BUILD_READINESS.md)** — can we start? checklist  
-2. **[docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md)** — full onboarding  
-3. **[docs/architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md)** — pick WS-00 and go  
-4. **[docs/architecture/USER_FLOWS.md](./docs/architecture/USER_FLOWS.md)** + **[MEDIUM_BUILD.md](./docs/architecture/MEDIUM_BUILD.md)** — UI spec  
-5. **[docs/architecture/LEGACY_REFERENCE.md](./docs/architecture/LEGACY_REFERENCE.md)** — port from `src/`  
-
----
-
-## Architecture docs
-
-| Doc | Purpose |
-|-----|---------|
-| [docs/STATUS.md](./docs/STATUS.md) | Living workstream dashboard |
-| [architecture/ARCHITECTURE.md](./docs/architecture/ARCHITECTURE.md) | Six layers, principles, stack |
-| [architecture/PHASE_1_SLICE.md](./docs/architecture/PHASE_1_SLICE.md) | Definition of done |
-| [architecture/USER_FLOWS.md](./docs/architecture/USER_FLOWS.md) | UX flows (Vyne/InsideDesk research) |
-| [architecture/MEDIUM_BUILD.md](./docs/architecture/MEDIUM_BUILD.md) | Screens, components, APIs |
-| [architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md) | WS-00 … WS-09 epics |
-| [research/README.md](./docs/research/README.md) | Dentrix CSV, payer rules, flags |
-| [architecture/EVENT_CATALOG.md](./docs/architecture/EVENT_CATALOG.md) | Event types + JSON |
-| [architecture/API_CONTRACTS.md](./docs/architecture/API_CONTRACTS.md) | Edge Functions |
-| [architecture/DATA_MODEL.md](./docs/architecture/DATA_MODEL.md) | Tables + RLS |
-| [architecture/PACKAGE_MAP.md](./docs/architecture/PACKAGE_MAP.md) | Monorepo packages |
-
----
-
-## Legacy prototype (reference only)
-
-```bash
-npm install && npm run dev   # Next.js spike at localhost:3000
-```
-
-Do **not** build new features here. Target: Turborepo in `apps/` + `packages/`.
-
----
-
-## Repo layout (target)
-
-```
-apps/operator     apps/owner
-packages/core     packages/events     packages/agents
-packages/integrations   packages/ui   …
-supabase/migrations   supabase/functions
-docs/research/    docs/architecture/
-```
-
-Each folder has a `README.md` with acceptance criteria.
-
----
-
-## Security
-
-Synthetic data only. No secrets in git. HIPAA BAAs required before real PHI.
+These mirror the click-through demo (Track C) so the demo and the real build tell the same story.
