@@ -2,9 +2,18 @@
   "name": "backstop",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run dev:api & npm run dev:operator & npm run dev:owner",
+    "dev:api": "npm run dev -w @backstop/api",
+    "dev:operator": "npm run dev -w @backstop/operator",
+    "dev:owner": "npm run dev -w @backstop/owner",
+    "dev:legacy": "next dev",
     "build": "next build",
+    "build:apps": "npm run build -w @backstop/operator && npm run build -w @backstop/owner",
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test src/lib/csv/parse-claims-csv.test.ts src/lib/csv/parse-outcomes-csv.test.ts src/lib/rules/scrub-claim.test.ts"

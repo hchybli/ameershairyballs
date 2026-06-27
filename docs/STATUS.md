@@ -1,8 +1,8 @@
 # Project status
 
 **Last updated:** 2026-06-26  
-**Phase:** 1 vertical slice — **pre-build organization complete**  
-**Updated by:** US team (doc + UX wiring pass)
+**Phase:** 1 rough draft — React apps + local API running  
+**Updated by:** US team
 
 ---
 
@@ -17,10 +17,11 @@
 | Domain research (starter) | **Done** — [research/](./research/README.md) |
 | Build readiness checklist | **Done** — [BUILD_READINESS.md](./BUILD_READINESS.md) |
 | Legacy Next.js prototype | **Done** — reference only (`src/`) |
-| Turborepo monorepo | Not started (WS-00) — **ready to start** |
+| Turborepo monorepo | npm workspaces (rough draft) |
+| Local API + React apps | **In progress** — `apps/api`, `apps/operator`, `apps/owner` |
 | Event-sourced DB | Migration written, not applied (WS-01) |
-| Operator app | Not started (WS-06) — UX locked |
-| Owner app | Not started (WS-08) — UX locked |
+| Operator app | **Rough draft** — work queue, claim gate, upload |
+| Owner app | **Rough draft** — KPI + outcomes upload |
 
 ---
 
@@ -57,7 +58,8 @@
 
 | Demo | How |
 |------|-----|
-| Legacy (now) | `npm run dev` → upload `data/synthetic/sample-claims.csv` |
+| **React (now)** | `npm run dev:api` + `npm run dev:operator` + `npm run dev:owner` — see [LOCAL_DEV.md](./LOCAL_DEV.md) |
+| Legacy Next.js | `npm run dev:legacy` → upload sample CSVs |
 | Target (Phase 1) | `scripts/demo-e2e.sh` (WS-09) |
 | Visual preview | [Canvas: Phase 1 build](/Users/ameerabouhouli/.cursor/projects/Users-ameerabouhouli-ameershairyballs-ameershairyballs/canvases/backstop-phase1-build.canvas.tsx) |
 
