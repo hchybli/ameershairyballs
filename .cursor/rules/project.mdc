@@ -1,29 +1,43 @@
 ---
-description: Backstop project conventions — dental billing Stage 1
+description: Backstop platform architecture — Bungaroo handoff
 alwaysApply: true
 ---
 
 # Backstop
 
-You are building Backstop, a pre-submission billing autopilot for small dental clinics.
+All-in-one dental insurance billing platform. Event-sourced, multi-tenant, synthetic data only until HIPAA BAAs.
 
-**Current scope:** dental billing only (Stage 1). Read `PROJECT_OVERVIEW.md` and `docs/FEATURE_ROADMAP.md` before implementing features.
+**Read before coding:**
+- `docs/HANDOFF_BUNGAROO.md`
+- `docs/architecture/ARCHITECTURE.md`
+- `docs/architecture/PHASE_1_SLICE.md`
+- `docs/architecture/WORKSTREAMS.md`
+
+## STACK (locked)
+
+- Turborepo + pnpm, TypeScript strict
+- React (Vite) SPA — **NOT Next.js** for new code
+- Supabase (Postgres, Auth, Edge Functions, RLS)
+- AWS Lambda/Fargate for heavy workers (Phase 2+)
+- Anthropic: Sonnet (judgment), Haiku (extraction)
 
 ## ALWAYS
 
-- TypeScript (strict), Next.js 14 App Router, Tailwind, shadcn/ui, Supabase (Postgres)
-- Domain vocab: claims, claim_lines, cdt_code, payer, flag, fix, outcome
-- Dental uses **CDT (D####)** and **837D** — NOT CPT or ICD-10
-- `outcomes` and `fixes` are append-only
-- Multi-tenant; one front-desk person is the user. Auto-fix safe items; flag the rest
-- Synthetic data only until HIPAA BAAs are signed
+- Append-only events; projectors for read models
+- Agents emit events via tools — never direct DB mutation
+- CDT (D####) and 837D — NOT CPT/ICD-10
+- Multi-tenant RLS on every table
+- Port scrub rules from `src/lib/rules/` — unit tests must pass
+- Branch: `feature/bungaroo/WS-XX-description`
 
 ## NEVER
 
-- Real PHI, secrets, or keys in repo/fixtures/prompts
-- Build ahead of Stage 1: no charting, scheduling, imaging, recare, sensors, dictation
-- A feature that doesn't help get a claim paid clean — flag scope creep
+- Real PHI in repo
+- Secrets in git
+- New features in legacy `src/` Next.js app
+- Build ahead of Phase 1 slice (no Jarvis, Dentrix API, clearinghouse, payments)
+- PMS features (charting, scheduling, etc.)
 
 ## Before implementing
 
-State which **roadmap phase/tier** (`docs/FEATURE_ROADMAP.md`) and which **overview section** (`PROJECT_OVERVIEW.md`) the work implements. Do not build Tier D or out-of-scope items.
+State workstream ID (WS-XX) and link acceptance criteria from WORKSTREAMS.md.

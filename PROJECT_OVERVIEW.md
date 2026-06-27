@@ -1,32 +1,31 @@
 # PROJECT_OVERVIEW.md
 
-**Working name:** Backstop (placeholder — replace)  
-**Status:** Phase 0 done. Phase 1 next.  
-**Source of truth:** this file + [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md). Keep both current.
+**Working name:** Backstop  
+**Status:** Architecture complete for Bungaroo handoff. Legacy Next.js prototype in `src/`.  
+**Source of truth:**
+- [docs/architecture/ARCHITECTURE.md](./docs/architecture/ARCHITECTURE.md) — platform architecture
+- [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md) — offshore engineering handoff
+- [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — product phases (historical + vision)
 
-## Vision
+## Platform mission (Stage 1)
 
-Build the full software ecosystem for dentistry. Staged:
+All-in-one **insurance billing** for dental clinics. Sits on the PMS (Dentrix first). Combines claim scrub + gate, outcome capture, payer intelligence, and (later) submission and Jarvis. **Managed service + software.**
 
-- **Stage 1 — now:** Dental billing. Cover every dental billing workflow we can. Start with small / independent clinics. Goal: accumulate the proprietary claims → payer → outcome data moat.
-- **Stage 2 — full clinic software.** Expand outward from billing into the rest of a clinic's software needs (full revenue cycle, then all-in-one).
-- **Stage 3 — enterprise / hospital.** Unified all-in-one operating layer over an organization's clinical + financial data (Palantir-like).
-- **Stage 4 — ambient.** In-office sensors + dictation capture. Cover every software need in the clinic.
+**Durable asset:** CDT × payer × outcome graph (`payer_intelligence`).
 
-Throughout: agentic AI executes the workflows; architecture built to hyperscale (multi-tenant, scales across thousands of clinics).
+**Engineering:** US team (product) + Bungaroo India (implementation). See [HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md).
 
-The billing data moat (Stage 1) is the asset the rest is built on. More clinics → more CDT × payer × outcome coverage → smarter agents → defensible position.
+## What we're building (Phase 1 slice)
 
-## Current scope
+One vertical slice on **synthetic data** — see [docs/architecture/PHASE_1_SLICE.md](./docs/architecture/PHASE_1_SLICE.md):
 
-This repo builds **Stage 1 only**: small-clinic dental billing. Stages 2–4 are direction, not the current build. **Do not build ahead of scope.**
+1. Ingest Dentrix CSV → events  
+2. Scrub agent (rules + LLM) → flags  
+3. Operator gate (approve/override)  
+4. 835 CSV → outcomes → payer intelligence  
+5. Owner dashboard — one KPI (clean-claim rate)
 
-## What we're building (now)
-
-A pre-submission billing autopilot for small / independent dental clinics. Sits on top of the clinic's existing PMS, checks every claim before submission, auto-fixes safe items, flags the rest, captures outcomes.
-
-**User:** a dentist or one front-desk/admin person.  
-**Constraint:** simple, mostly automatic, no review queue to manage.
+**Legacy spike** (`src/` Next.js) proves rules UX; **do not extend** — port to monorepo per [LEGACY_REFERENCE.md](./docs/architecture/LEGACY_REFERENCE.md).
 
 ## Build list (what the software does)
 

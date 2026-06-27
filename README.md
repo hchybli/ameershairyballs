@@ -1,66 +1,61 @@
 # Backstop
 
-**Pre-submission billing autopilot for small dental clinics** — Stage 1 of a larger dental software ecosystem.
+**Dental insurance billing platform** — event-sourced, multi-tenant. Engineering handoff to **Bungaroo India**.
 
 | | |
 |---|---|
 | **Repo** | [github.com/hchybli/ameershairyballs](https://github.com/hchybli/ameershairyballs) |
-| **Collaborators** | [@hchybli](https://github.com/hchybli), [@ameerabouhouli](https://github.com/ameerabouhouli) |
-| **Status** | **Phases 0–2 done** (ingest, scrub, flags, dashboard). [Review guide](./docs/DEMO_WALKTHROUGH.md) for @hchybli. Synthetic data only. |
+| **US team** | @hchybli, @ameerabouhouli — product, dental rules, review |
+| **Engineering** | Bungaroo India — implementation |
+| **Status** | Architecture + workstreams documented. Legacy prototype in `src/`. |
 
-## What this project does
+---
 
-Backstop sits on top of a clinic's existing PMS, checks every claim before submission, auto-fixes safe items, flags the rest, and captures payer outcomes.
+## Bungaroo — start here
 
-**Source of truth (read both before building):**
-- [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) — vision, scope, stack, data model
-- [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — feature tiers, build order, denial drivers
+1. **[docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md)** — read first  
+2. **[docs/architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md)** — pick WS-00 and go  
+3. **[docs/architecture/LEGACY_REFERENCE.md](./docs/architecture/LEGACY_REFERENCE.md)** — port from `src/`  
 
-## @hchybli — review this build
+---
 
-1. `git pull origin main && npm install && npm run dev`
-2. Read **[docs/collaborators/MESSAGE_FOR_HCHYBLI.md](./docs/collaborators/MESSAGE_FOR_HCHYBLI.md)**
-3. Follow **[docs/DEMO_WALKTHROUGH.md](./docs/DEMO_WALKTHROUGH.md)** (~5 min)
+## Architecture docs
 
-## New here? Start here
+| Doc | Purpose |
+|-----|---------|
+| [architecture/ARCHITECTURE.md](./docs/architecture/ARCHITECTURE.md) | Six layers, principles, stack |
+| [architecture/PHASE_1_SLICE.md](./docs/architecture/PHASE_1_SLICE.md) | Definition of done |
+| [architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md) | WS-00 … WS-09 epics |
+| [architecture/EVENT_CATALOG.md](./docs/architecture/EVENT_CATALOG.md) | Event types + JSON |
+| [architecture/API_CONTRACTS.md](./docs/architecture/API_CONTRACTS.md) | Edge Functions |
+| [architecture/DATA_MODEL.md](./docs/architecture/DATA_MODEL.md) | Tables + RLS |
+| [architecture/PACKAGE_MAP.md](./docs/architecture/PACKAGE_MAP.md) | Monorepo packages |
 
-1. **[docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md)** — what we build and in what order
-2. **[docs/DEMO_WALKTHROUGH.md](./docs/DEMO_WALKTHROUGH.md)** — hands-on demo
-3. **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)** — install, run, test
-4. **[PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md)** — vision and constraints
-5. **[docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md)** — Cursor + Git for beginners
+---
 
-## Docs map
-
-| File | Purpose |
-|------|---------|
-| [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) | Feature tiers, build order — co-source of truth |
-| [docs/DEMO_WALKTHROUGH.md](./docs/DEMO_WALKTHROUGH.md) | **Partner review guide** |
-| [docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md) | Run app + tests locally |
-| [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) | Vision, scope, PHI rules |
-| [docs/GETTING_STARTED.md](./docs/GETTING_STARTED.md) | Cursor onboarding |
-| [CONTRIBUTING.md](./CONTRIBUTING.md) | Collaboration workflow |
-
-## Quick start
+## Legacy prototype (reference only)
 
 ```bash
-npm install
-npm run dev      # http://localhost:3000 — ingest claims
-                 # http://localhost:3000/dashboard — outcomes + metrics
-npm test         # 8 tests
+npm install && npm run dev   # Next.js spike at localhost:3000
 ```
 
-**Demo files:** `data/synthetic/sample-claims.csv` + `sample-outcomes.csv`
+Do **not** build new features here. Target: Turborepo in `apps/` + `packages/`.
 
-## Working in Cursor
+---
+
+## Repo layout (target)
 
 ```
-@PROJECT_OVERVIEW.md @docs/FEATURE_ROADMAP.md
-Implement Phase 3: payer rule pack for Delta Dental.
+apps/operator     apps/owner
+packages/core     packages/events     packages/agents
+packages/integrations   packages/ui   …
+supabase/migrations   supabase/functions
 ```
+
+Each folder has a `README.md` with acceptance criteria.
+
+---
 
 ## Security
 
-- No real PHI until HIPAA BAAs are signed
-- No secrets in git — use `.env.local` (gitignored)
-- `outcomes` and `fixes` are append-only
+Synthetic data only. No secrets in git. HIPAA BAAs required before real PHI.

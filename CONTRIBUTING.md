@@ -1,76 +1,82 @@
 # Contributing
 
-This repo is shared between **@hchybli** and **@ameerabouhouli**. These conventions keep us aligned and avoid stepping on each other's work.
+**US team:** @hchybli, @ameerabouhouli  
+**Engineering:** Bungaroo India (offshore)  
+**Handoff doc:** [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md)
+
+---
 
 ## Before you code
 
-1. Read [PROJECT_OVERVIEW.md](./PROJECT_OVERVIEW.md) — vision, scope, PHI rules
-2. Read [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — feature tiers and build order
-3. Check open decisions in the roadmap **Decisions** table
-4. In Cursor, attach `@PROJECT_OVERVIEW.md` and `@docs/FEATURE_ROADMAP.md` when asking the AI to implement something
+1. [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md) — start here
+2. [docs/architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md) — pick your epic
+3. [docs/architecture/LEGACY_REFERENCE.md](./docs/architecture/LEGACY_REFERENCE.md) — if porting from `src/`
 
-## Git workflow
+**Do not add features to the legacy Next.js app (`src/`).** New work goes in `apps/` and `packages/`.
 
-We use a simple trunk-based flow while the repo is small:
+---
+
+## Git workflow (distributed)
 
 ```
-main          ← stable; always deployable (once we have an app)
-  └── feature/your-name/short-description
+main
+ └── feature/bungaroo/WS-03-csv-adapters
+ └── feature/bungaroo/WS-06-operator-ui
 ```
 
-### Starting work
+### Branch naming
 
-```bash
-git checkout main
-git pull origin main
-git checkout -b feature/ameer/csv-ingest-schema
+```
+feature/bungaroo/<workstream-id>-<short-description>
 ```
 
-Use your GitHub username in the branch name so it's obvious who owns it.
+Example: `feature/bungaroo/WS-04-scrub-agent`
 
-### Committing
+### Commits
 
-- Write clear commit messages: what changed and why
-- One logical change per commit when possible
-- Never commit `.env`, real PHI, or API keys
-
-```bash
-git add .
-git commit -m "Add Supabase schema for clinics and claims tables"
-git push -u origin feature/ameer/csv-ingest-schema
+```
+WS-04: Port attachment rules from legacy scrub engine
 ```
 
 ### Pull requests
 
-1. Push your branch to GitHub
-2. Open a PR against `main`
-3. Tag the other collaborator for review
-4. Squash-merge when approved (keeps history clean while we're pre-1.0)
+1. PR title includes workstream ID: `WS-06: Operator claim detail page`
+2. Description links acceptance criteria checkboxes from WORKSTREAMS.md
+3. US team reviews all merges to `main`
+4. Squash-merge preferred
 
-On GitHub: **Pull requests → New pull request → compare across forks/branches → Create**
+---
 
-## Who does what (starting point)
+## Code quality
 
-| Area | Owner (initial) | Notes |
-|------|-----------------|-------|
-| Product spec | Both | Update `PROJECT_OVERVIEW.md` together |
-| Repo / infra setup | TBD | First person to scaffold Next.js owns it |
-| Supabase schema | TBD | Coordinate before merging migrations |
-| Frontend UI | TBD | shadcn/ui components |
-| EDI / billing rules | TBD | CDT domain knowledge |
+| Requirement | Where |
+|-------------|-------|
+| TypeScript `strict` | All packages |
+| Unit tests | Scrub rules, adapters, projectors, KPI |
+| No `service_role` in client | `packages/auth` |
+| RLS on tenant tables | `supabase/migrations/` |
 
-Update this table as you divide work. The point is to **talk before two people build the same thing**.
+---
 
-## Cursor tips for collaboration
+## Ownership (update as team assigns)
 
-- **Share context:** both of you should have the same `.cursor/rules/` files (they're in git)
-- **Reference files in chat:** `@PROJECT_OVERVIEW.md`, `@src/...` — the AI reads what you attach
-- **Don't fight the AI on scope:** if it suggests charting or scheduling, that's Stage 2+ — point it back to the overview
+| Workstream | Area | Owner |
+|------------|------|-------|
+| WS-00–01 | Monorepo, DB, RLS | Bungaroo lead |
+| WS-02–05 | Events, agents, Edge Functions | Bungaroo backend |
+| WS-06, WS-08 | Operator + Owner apps | Bungaroo frontend |
+| WS-04 rules review | Dental CDT rules | US team |
+| Product spec | Architecture docs | US team |
+
+---
 
 ## Synthetic data only
 
-All fixtures, seed data, and test patients must be fake until HIPAA BAAs are signed. Use made-up names, fake member IDs, and synthetic CDT lines.
+No real PHI until HIPAA BAAs. Use `scripts/seed-synthetic.ts` (WS-01) and `data/synthetic/`.
+
+---
 
 ## Questions?
 
-Add open decisions to [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md) rather than leaving them only in chat.
+- Scope → [docs/architecture/PHASE_1_SLICE.md](./docs/architecture/PHASE_1_SLICE.md)
+- Product → [docs/OPEN_QUESTIONS.md](./docs/OPEN_QUESTIONS.md)
