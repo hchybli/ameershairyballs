@@ -115,17 +115,23 @@ See [API_CONTRACTS.md](./API_CONTRACTS.md).
 ## WS-06 — Operator app (`apps/operator`)
 
 **Owner:** Bungaroo frontend  
-**Depends on:** WS-05, `packages/ui`
+**Depends on:** WS-05, `packages/ui`  
+**UX spec:** [USER_FLOWS.md](./USER_FLOWS.md)
 
 ### Tasks
 - [ ] Vite + React + Tailwind + shadcn
-- [ ] Upload CSV page
-- [ ] Claim detail: flag list, Approve, Override (modal with reason)
-- [ ] Mobile-first layout
+- [ ] **Work queue** as default route `/` (compact rows: patient, payer, DOS, $, top flag, severity)
+- [ ] **Claim action view** `/claims/:id` — flag cards, header primary blocker, no entity tabs
+- [ ] Upload CSV at `/upload` (secondary); post-upload redirect to queue
+- [ ] Approve / Override (modal with required reason)
+- [ ] Mobile-first layout (≥44px touch targets on gate actions)
 
 ### Acceptance
-- E2E: upload sample-claims → see flags → approve one → event in DB
+- E2E: upload sample-claims → queue shows claims → open claim → approve one → event in DB
 - Matches legacy flag semantics
+- Default landing is work queue, not upload
+- All open flags visible without tab navigation
+- ≥10 queue rows visible at 1080p
 
 ---
 
@@ -148,16 +154,19 @@ See [API_CONTRACTS.md](./API_CONTRACTS.md).
 ## WS-08 — Owner app (`apps/owner`)
 
 **Owner:** Bungaroo frontend  
-**Depends on:** WS-07, `packages/ui`
+**Depends on:** WS-07, `packages/ui`  
+**UX spec:** [USER_FLOWS.md](./USER_FLOWS.md)
 
 ### Tasks
-- [ ] KPI tile (live from API)
-- [ ] Drill-down table → claim links
+- [ ] KPI tile (live from API) — **single metric**, clean-claim rate
+- [ ] Drill-down table → claim ids (+ optional link to operator claim view)
 - [ ] Shared auth with operator app
+- [ ] No empty placeholder charts or module tabs (IQ/Assist split)
 
 ### Acceptance
 - After full seed flow, KPI displays correct %
 - Click row → see claim id (detail page optional P1)
+- Dashboard is one screen: KPI + drill-down only
 
 ---
 

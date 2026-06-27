@@ -8,7 +8,7 @@ Dependency direction: **apps → packages** (never packages importing apps).
 
 | Package | Description | Depends on |
 |---------|-------------|------------|
-| `apps/operator` | Gate UI: upload, flags, approve/override | `ui`, `auth`, `core` |
+| `apps/operator` | Gate UI: work queue, claim action view, upload, approve/override | `ui`, `auth`, `core` |
 | `apps/owner` | KPI dashboard + drill-down | `ui`, `auth`, `analytics` |
 
 ---

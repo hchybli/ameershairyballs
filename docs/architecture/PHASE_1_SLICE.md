@@ -13,7 +13,7 @@ US product decision: **optimize for dental billing correctness and handoff clari
 | 1 | Synthetic Dentrix CSV → canonical claim model | L3, L4 |
 | 2 | `claim.ingested` events + projectors | L5 |
 | 3 | Scrub agent: rules first, Sonnet for ambiguous lines only | L2, L3 |
-| 4 | Operator UI: approve / override (reason required) | L1, L2 |
+| 4 | Operator UI: work queue → claim action view → approve / override (reason required) | L1, L2 |
 | 5 | Synthetic 835 CSV → `outcome.received` + intelligence seed | L3, L4, L5 |
 | 6 | Owner dashboard: **one KPI** — clean-claim rate + drill-down | L1, L5 |
 
@@ -54,6 +54,17 @@ Alternative KPI ($ flagged) documented in analytics package but **not** Phase 1 
 ```
 
 **Tests required:** every rule in `packages/agents` must have unit tests (port existing tests).
+
+---
+
+## Operator UX (locked)
+
+Design rationale and wireframes: [USER_FLOWS.md](./USER_FLOWS.md).
+
+- **Default home:** work queue (open flags), not upload or feature sidebar  
+- **Claim detail:** single action view with flag cards — no Patient/Provider/Procedures tabs  
+- **Owner:** one KPI tile + drill-down — no secondary analytics modules  
+- **Avoid:** marketing interstitials, empty workflow columns, duplicate provider forms  
 
 ---
 

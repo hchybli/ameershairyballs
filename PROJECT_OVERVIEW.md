@@ -1,9 +1,12 @@
 # PROJECT_OVERVIEW.md
 
 **Working name:** Backstop  
-**Status:** Architecture complete for Bungaroo handoff. Legacy Next.js prototype in `src/`.  
+**Status:** Pre-build docs complete — ready for Bungaroo WS-00. Legacy Next.js prototype in `src/`.  
 **Source of truth:**
+- [docs/BUILD_READINESS.md](./docs/BUILD_READINESS.md) — pre-build checklist
 - [docs/architecture/ARCHITECTURE.md](./docs/architecture/ARCHITECTURE.md) — platform architecture
+- [docs/architecture/USER_FLOWS.md](./docs/architecture/USER_FLOWS.md) — UX flows (locked)
+- [docs/architecture/MEDIUM_BUILD.md](./docs/architecture/MEDIUM_BUILD.md) — screens + APIs
 - [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md) — offshore engineering handoff
 - [docs/FEATURE_ROADMAP.md](./docs/FEATURE_ROADMAP.md) — product phases (historical + vision)
 

@@ -1,8 +1,10 @@
 # Feature roadmap
 
-**Status:** source of truth (with [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md))  
+> **Build truth:** For implementation, use [BUILD_READINESS.md](./BUILD_READINESS.md), [architecture/](./architecture/README.md), and [USER_FLOWS.md](./architecture/USER_FLOWS.md). This doc is product vision and phase history.
+
+**Status:** Product vision (with [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md))  
 **Last updated:** 2026-06-26  
-**Read this before building.** Both collaborators should review and agree before Phase 1 starts.
+**Read this for why we build what we build.** Implementation specs live in `docs/architecture/`.
 
 ---
 

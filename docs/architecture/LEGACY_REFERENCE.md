@@ -21,8 +21,8 @@ The US team built a working spike to validate dental rules and UX. Bungaroo port
 | `src/lib/rules/scrub-claim.test.ts` | `packages/agents/src/scrub/rules/engine.test.ts` | Must pass |
 | `src/lib/rules/types.ts` | `packages/core/src/flag.ts` | Align with event catalog |
 | `src/lib/types.ts` | `packages/core/src/claim.ts` | Add tenant_id fields |
-| `src/components/claim-flags.tsx` | `packages/ui/src/flag-card.tsx` | |
-| `src/components/claim-upload.tsx` | `apps/operator` pages | |
+| `src/components/claim-flags.tsx` | `packages/ui/src/flag-card.tsx` | Primary UI pattern — see [USER_FLOWS.md](./USER_FLOWS.md) |
+| `src/components/claim-upload.tsx` | `apps/operator` pages | Secondary route `/upload`, not home |
 | `src/components/dashboard-view.tsx` | `apps/owner` pages | |
 | `data/synthetic/*.csv` | `scripts/fixtures/` or keep `data/synthetic/` | |
 

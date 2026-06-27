@@ -13,6 +13,7 @@
 │ L1 SURFACES                                                     │
 │   Operator Workspace · Biller Console* · Owner Dashboard ·      │
 │   Patient Pay* · Jarvis*                                        │
+│   UX: work-queue-first, action-centric claims — see USER_FLOWS  │
 ├─────────────────────────────────────────────────────────────────┤
 │ L2 ORCHESTRATION                                                │
 │   Governance Gate · Worklist engine · Agent fleet               │
