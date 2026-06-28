@@ -1,0 +1,3 @@
+external_claim_id,patient_ref,payer_name,cdt_code,fee_billed,fee_allowed,tooth,quadrant
+SYN-CLM-L01,SYN-PAT-L01,Aetna Dental,D0120,55.00,45.00,,
+SYN-CLM-L02,SYN-PAT-L02,Guardian,D2140,195.00,160.00,19,
