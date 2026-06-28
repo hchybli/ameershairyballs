@@ -15,10 +15,13 @@
 
 # production
 /build
+apps/*/dist
+**/dist
 
 # misc
 .DS_Store
 *.pem
+.cursor/settings.json
 
 # debug
 npm-debug.log*
