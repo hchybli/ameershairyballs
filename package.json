@@ -16,7 +16,7 @@
     "build:apps": "npm run build -w @backstop/operator && npm run build -w @backstop/owner",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx --test src/lib/csv/parse-claims-csv.test.ts src/lib/csv/parse-outcomes-csv.test.ts packages/agents/src/scrub/engine.test.ts packages/agents/src/scrub/flag-parity.test.ts packages/events/src/projectors.test.ts",
+    "test": "tsx --test packages/integrations/src/adapters/csv-dentrix.test.ts packages/integrations/src/adapters/csv-835.test.ts packages/integrations/src/adapters/csv-parity.test.ts packages/agents/src/scrub/engine.test.ts packages/agents/src/scrub/flag-parity.test.ts packages/events/src/projectors.test.ts",
     "test:seed": "tsx --env-file=.env --test scripts/seed-rls.test.ts",
     "test:events": "tsx --env-file=.env --test scripts/events-replay.test.ts",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
