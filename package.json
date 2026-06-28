@@ -17,6 +17,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test src/lib/csv/parse-claims-csv.test.ts src/lib/csv/parse-outcomes-csv.test.ts src/lib/rules/scrub-claim.test.ts",
+    "test:seed": "tsx --env-file=.env --test scripts/seed-rls.test.ts",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },
   "dependencies": {

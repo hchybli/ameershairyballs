@@ -11,7 +11,9 @@ create or replace function public.auth_is_privileged_role() returns boolean
 
 -- Returns clinic IDs the current user may access within their tenant.
 create or replace function public.auth_accessible_clinic_ids() returns setof uuid
-  language sql stable
+  language sql
+  stable
+  security definer
   set search_path = public
   as $$
     select c.id
@@ -28,14 +30,18 @@ create or replace function public.auth_accessible_clinic_ids() returns setof uui
   $$;
 
 create or replace function public.auth_can_access_clinic(p_clinic_id uuid) returns boolean
-  language sql stable
+  language sql
+  stable
+  security definer
   set search_path = public
   as $$
     select p_clinic_id in (select auth_accessible_clinic_ids())
   $$;
 
 create or replace function public.auth_can_access_event(payload jsonb) returns boolean
-  language sql stable
+  language sql
+  stable
+  security definer
   set search_path = public
   as $$
     select
