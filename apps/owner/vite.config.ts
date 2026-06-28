@@ -10,6 +10,7 @@ export default defineConfig({
       "@backstop/db": path.resolve(__dirname, "../../packages/db/src/index.ts"),
       "@backstop/auth": path.resolve(__dirname, "../../packages/auth/src/index.ts"),
       "@backstop/api-client": path.resolve(__dirname, "../../packages/api-client/src/index.ts"),
+      "@backstop/ui": path.resolve(__dirname, "../../packages/ui/src/index.ts"),
     },
   },
   server: {

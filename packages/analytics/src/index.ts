@@ -2,6 +2,34 @@ import type { StoredClaim } from "@backstop/core";
 
 const HIGH_SEVERITIES = new Set(["high", "critical"]);
 
+export interface OutcomeRow {
+  result: "paid" | "denied" | "downcoded";
+  paidAmount: number;
+  externalClaimId?: string;
+  payerName?: string;
+}
+
+export interface DrillDownRow {
+  externalClaimId: string;
+  patientRef: string;
+  payerName: string;
+  flagsOpen: number;
+  clean: boolean;
+  lastEvent: string;
+}
+
+export interface KpiBundle {
+  cleanClaimRate: number;
+  claimsIngested: number;
+  claimsClean: number;
+  claimsWithOpenFlags: number;
+  denialRate: number;
+  outcomesRecorded: number;
+  outcomesDenied: number;
+  dollarsRecovered: number;
+  drillDown: DrillDownRow[];
+}
+
 export function isClaimClean(claim: StoredClaim): boolean {
   const open = claim.scrub.flags.filter((f) => f.status === "open");
   return !open.some((f) => HIGH_SEVERITIES.has(f.severity));
@@ -14,14 +42,7 @@ export function computeCleanClaimRate(claims: StoredClaim[]) {
       claimsIngested: 0,
       claimsClean: 0,
       claimsWithOpenFlags: 0,
-      drillDown: [] as Array<{
-        externalClaimId: string;
-        patientRef: string;
-        payerName: string;
-        flagsOpen: number;
-        clean: boolean;
-        lastEvent: string;
-      }>,
+      drillDown: [] as DrillDownRow[],
     };
   }
 
@@ -45,5 +66,40 @@ export function computeCleanClaimRate(claims: StoredClaim[]) {
     claimsClean,
     claimsWithOpenFlags: drillDown.filter((r) => r.flagsOpen > 0).length,
     drillDown: drillDown.filter((r) => !r.clean),
+  };
+}
+
+export function computeDenialRate(outcomes: OutcomeRow[]): {
+  denialRate: number;
+  outcomesRecorded: number;
+  outcomesDenied: number;
+} {
+  if (outcomes.length === 0) {
+    return { denialRate: 0, outcomesRecorded: 0, outcomesDenied: 0 };
+  }
+  const denied = outcomes.filter((o) => o.result === "denied").length;
+  return {
+    denialRate: Math.round((denied / outcomes.length) * 1000) / 10,
+    outcomesRecorded: outcomes.length,
+    outcomesDenied: denied,
+  };
+}
+
+export function computeDollarsRecovered(outcomes: OutcomeRow[]): number {
+  return outcomes
+    .filter((o) => o.result === "paid" || o.result === "downcoded")
+    .reduce((sum, o) => sum + o.paidAmount, 0);
+}
+
+export function buildKpiBundle(
+  claims: StoredClaim[],
+  outcomes: OutcomeRow[],
+): KpiBundle {
+  const clean = computeCleanClaimRate(claims);
+  const denial = computeDenialRate(outcomes);
+  return {
+    ...clean,
+    ...denial,
+    dollarsRecovered: computeDollarsRecovered(outcomes),
   };
 }

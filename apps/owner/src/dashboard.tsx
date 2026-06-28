@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@backstop/auth";
 import { callEdgeFunction } from "@backstop/api-client";
+import { AppShell, Card, MetricTile } from "@backstop/ui";
 
 interface KpiResponse {
-  metric: string;
   cleanClaimRate: number;
   claimsIngested: number;
   claimsClean: number;
   claimsWithOpenFlags: number;
+  denialRate: number;
+  outcomesRecorded: number;
+  outcomesDenied: number;
+  dollarsRecovered: number;
   drillDown: Array<{
     externalClaimId: string;
     patientRef: string;
@@ -18,11 +22,14 @@ interface KpiResponse {
   }>;
 }
 
+type TileFilter = "all" | "dirty" | "denials";
+
 export function DashboardPage() {
   const { supabaseSession } = useAuth();
   const [kpi, setKpi] = useState<KpiResponse | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<TileFilter>("dirty");
 
   async function loadKpi() {
     const token = supabaseSession?.access_token;
@@ -57,75 +64,107 @@ export function DashboardPage() {
     fileInput.value = "";
   }
 
+  const tableRows = useMemo(() => {
+    if (!kpi) return [];
+    if (filter === "dirty") return kpi.drillDown;
+    if (filter === "denials") {
+      return kpi.drillDown.filter((r) => r.lastEvent === "flag.raised");
+    }
+    return kpi.drillDown;
+  }, [kpi, filter]);
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b bg-card">
-        <div className="mx-auto max-w-4xl px-4 py-3 font-semibold">Backstop Owner</div>
-      </header>
+    <AppShell title="Backstop Owner" nav={[{ href: "/", label: "Dashboard", active: true }]}>
+      <div>
+        <h1 className="text-2xl font-semibold text-[color:var(--bs-navy)]">Command center</h1>
+        <p className="text-sm text-muted-foreground">Synthetic demo · tenant-scoped via RLS</p>
+      </div>
 
-      <main className="mx-auto max-w-4xl px-4 py-6">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Clean-claim rate — last 30 days (demo)</p>
+      {loading ? (
+        <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
+      ) : (
+        <>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <MetricTile
+              hero
+              label="Dollars recovered"
+              value={`$${(kpi?.dollarsRecovered ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+              hint={`${kpi?.outcomesRecorded ?? 0} outcomes recorded`}
+              tone="success"
+              onClick={() => setFilter("all")}
+            />
+            <MetricTile
+              label="Clean-claim rate"
+              value={`${kpi?.cleanClaimRate ?? 0}%`}
+              hint={`${kpi?.claimsClean ?? 0} / ${kpi?.claimsIngested ?? 0} passed gate`}
+              tone={(kpi?.cleanClaimRate ?? 0) >= 80 ? "success" : "warn"}
+              onClick={() => setFilter("dirty")}
+            />
+            <MetricTile
+              label="Denial rate"
+              value={`${kpi?.denialRate ?? 0}%`}
+              hint={`${kpi?.outcomesDenied ?? 0} denied of ${kpi?.outcomesRecorded ?? 0}`}
+              tone={(kpi?.denialRate ?? 0) > 25 ? "danger" : "default"}
+              onClick={() => setFilter("denials")}
+            />
+          </div>
 
-        {loading ? (
-          <p className="mt-6 text-sm">Loading…</p>
-        ) : (
-          <>
-            <div className="mt-6 rounded-xl border bg-card p-6">
-              <p className="text-sm text-muted-foreground">Clean-claim rate</p>
-              <p className="text-5xl font-semibold">{kpi?.cleanClaimRate ?? 0}%</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {kpi?.claimsIngested ?? 0} claims ingested · {kpi?.claimsClean ?? 0} passed
-                gate · {kpi?.claimsWithOpenFlags ?? 0} with open flags
+          <Card className="mt-8 overflow-hidden">
+            <div className="border-b px-4 py-3">
+              <h2 className="font-medium text-[color:var(--bs-navy)]">
+                {filter === "dirty" ? "Claims below target" : "Drill-down"}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {kpi?.claimsWithOpenFlags ?? 0} with open flags · tap a KPI tile to filter
               </p>
             </div>
-
-            <div className="mt-8">
-              <h2 className="text-lg font-medium">Claims below target</h2>
-              {kpi?.drillDown.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">All claims are clean.</p>
-              ) : (
-                <table className="mt-3 w-full text-left text-sm">
-                  <thead className="border-b text-xs uppercase text-muted-foreground">
+            {tableRows.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">No rows for this filter.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left text-sm">
+                  <thead className="border-b bg-muted/30 text-[11px] uppercase tracking-wide text-muted-foreground">
                     <tr>
-                      <th className="py-2">Claim</th>
-                      <th className="py-2">Patient</th>
-                      <th className="py-2">Payer</th>
-                      <th className="py-2">Flags</th>
-                      <th className="py-2">Last event</th>
+                      <th className="px-4 py-2">Claim</th>
+                      <th className="px-4 py-2">Patient</th>
+                      <th className="px-4 py-2">Payer</th>
+                      <th className="px-4 py-2 text-right">Flags</th>
+                      <th className="px-4 py-2">Last event</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {kpi?.drillDown.map((row) => (
-                      <tr key={row.externalClaimId} className="border-b">
-                        <td className="py-2 font-mono text-xs">{row.externalClaimId}</td>
-                        <td className="py-2">{row.patientRef}</td>
-                        <td className="py-2">{row.payerName}</td>
-                        <td className="py-2">{row.flagsOpen}</td>
-                        <td className="py-2 text-muted-foreground">{row.lastEvent}</td>
+                    {tableRows.map((row) => (
+                      <tr key={row.externalClaimId} className="border-b hover:bg-muted/20">
+                        <td className="px-4 py-2 font-mono text-xs">{row.externalClaimId}</td>
+                        <td className="px-4 py-2">{row.patientRef}</td>
+                        <td className="px-4 py-2">{row.payerName}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{row.flagsOpen}</td>
+                        <td className="px-4 py-2 text-muted-foreground">{row.lastEvent}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              )}
-            </div>
-          </>
-        )}
+              </div>
+            )}
+          </Card>
+        </>
+      )}
 
-        <form onSubmit={uploadOutcomes} className="mt-10 rounded-lg border p-4">
-          <h2 className="font-medium">Upload payer outcomes (835 CSV)</h2>
+      <Card className="mt-8 p-4">
+        <form onSubmit={uploadOutcomes}>
+          <h2 className="font-medium text-[color:var(--bs-navy)]">Upload payer outcomes (835 CSV)</h2>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <input type="file" name="file" accept=".csv" className="text-sm" />
             <button
               type="submit"
-              className="rounded-md bg-foreground px-4 py-2 text-sm text-background"
+              className="min-h-11 rounded-md bg-[color:var(--bs-navy)] px-4 py-2 text-sm font-medium text-white"
             >
               Record outcomes
             </button>
           </div>
           {message && <p className="mt-2 text-sm text-muted-foreground">{message}</p>}
         </form>
-      </main>
-    </div>
+      </Card>
+    </AppShell>
   );
 }

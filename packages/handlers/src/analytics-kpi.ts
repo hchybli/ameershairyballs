@@ -1,4 +1,4 @@
-import { computeCleanClaimRate } from "@backstop/analytics";
+import { buildKpiBundle } from "@backstop/analytics";
 import type { FlagType, StoredClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
 import type { HandlerAuth } from "./types";
@@ -70,7 +70,26 @@ export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: Handle
     };
   });
 
-  const kpi = computeCleanClaimRate(storedClaims);
+  const { data: outcomeRows, error: outcomesError } = await db
+    .from("outcomes")
+    .select("result, paid_amount, claim_id, claims_current(external_claim_id, payer_name)")
+    .eq("tenant_id", auth.tenantId);
+
+  if (outcomesError) {
+    throw new Error(`outcomes query failed: ${outcomesError.message}`);
+  }
+
+  const outcomes = (outcomeRows ?? []).map((row) => {
+    const claim = row.claims_current as { external_claim_id: string; payer_name: string } | null;
+    return {
+      result: row.result as "paid" | "denied" | "downcoded",
+      paidAmount: Number(row.paid_amount),
+      externalClaimId: claim?.external_claim_id,
+      payerName: claim?.payer_name,
+    };
+  });
+
+  const kpi = buildKpiBundle(storedClaims, outcomes);
 
   return {
     metric: "clean_claim_rate",
@@ -81,6 +100,10 @@ export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: Handle
     claimsIngested: kpi.claimsIngested,
     claimsClean: kpi.claimsClean,
     claimsWithOpenFlags: kpi.claimsWithOpenFlags,
+    denialRate: kpi.denialRate,
+    outcomesRecorded: kpi.outcomesRecorded,
+    outcomesDenied: kpi.outcomesDenied,
+    dollarsRecovered: kpi.dollarsRecovered,
     drillDown: kpi.drillDown,
   };
 }
