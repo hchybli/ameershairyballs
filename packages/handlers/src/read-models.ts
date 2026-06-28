@@ -17,6 +17,7 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
       claim_id,
       flag_type,
       severity,
+      dollar_impact,
       reason,
       claims_current!inner (
         external_claim_id,
@@ -47,6 +48,8 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
     const existing = byClaim.get(key);
     const severity = flag.severity ?? "low";
 
+    const impact = flag.dollar_impact === null ? 0 : Number(flag.dollar_impact);
+
     if (!existing) {
       byClaim.set(key, {
         claimId: flag.claim_id,
@@ -54,6 +57,8 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
         patientRef: claim.patient_ref,
         payerName: claim.payer_name,
         feeTotal: 0,
+        dollarImpactAtRisk: impact,
+        priorityScore: 0,
         flagsOpen: 1,
         topFlagType: flag.flag_type,
         topFlagReason: flag.reason,
@@ -64,6 +69,7 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
     }
 
     existing.flagsOpen += 1;
+    existing.dollarImpactAtRisk += impact;
     const existingRank = SEVERITY_RANK[existing.topSeverity ?? "low"] ?? 0;
     const nextRank = SEVERITY_RANK[severity] ?? 0;
     if (nextRank > existingRank) {
@@ -90,12 +96,12 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
   }
 
   return [...byClaim.values()]
-    .map(({ claimId: _claimId, ...row }) => row)
-    .sort((a, b) => {
-      const sa = SEVERITY_RANK[a.topSeverity ?? "low"] ?? 0;
-      const sb = SEVERITY_RANK[b.topSeverity ?? "low"] ?? 0;
-      return sb - sa;
-    });
+    .map(({ claimId: _claimId, ...row }) => {
+      const urgency = SEVERITY_RANK[row.topSeverity ?? "low"] ?? 1;
+      const dollars = Math.max(row.dollarImpactAtRisk, row.feeTotal * 0.1, 1);
+      return { ...row, priorityScore: dollars * urgency };
+    })
+    .sort((a, b) => b.priorityScore - a.priorityScore);
 }
 
 export async function fetchClaimDetail(
@@ -118,12 +124,19 @@ export async function fetchClaimDetail(
     .eq("claim_id", claim.id)
     .order("line_index");
 
-  const { data: openFlags } = await supabase
-    .from("flags_open")
-    .select("id, line_index, cdt_code, flag_type, severity, dollar_impact, reason, suggested_fix")
-    .eq("claim_id", claim.id);
+  const [{ data: openFlags }, { data: resolvedFlags }] = await Promise.all([
+    supabase
+      .from("flags_open")
+      .select("id, line_index, cdt_code, flag_type, severity, dollar_impact, reason, suggested_fix")
+      .eq("claim_id", claim.id),
+    supabase
+      .from("flags_resolved")
+      .select("id, flag_type, severity, status, resolution_reason")
+      .eq("claim_id", claim.id)
+      .order("resolved_at", { ascending: false }),
+  ]);
 
-  const flags = (openFlags ?? []).map((flag) => ({
+  const open = (openFlags ?? []).map((flag) => ({
     id: flag.id,
     externalClaimId: claim.external_claim_id,
     lineIndex: flag.line_index ?? -1,
@@ -138,7 +151,27 @@ export async function fetchClaimDetail(
     suggestedFix: flag.suggested_fix ?? undefined,
   }));
 
-  const open = flags.filter((f) => f.status === "open");
+  const resolved = (resolvedFlags ?? []).map((flag) => ({
+    id: flag.id,
+    externalClaimId: claim.external_claim_id,
+    lineIndex: -1,
+    cdtCode: "",
+    payerName: claim.payer_name,
+    type: flag.flag_type as FlagType,
+    severity: flag.severity as StoredClaim["scrub"]["flags"][number]["severity"],
+    dollarImpact: null,
+    reason: flag.resolution_reason ?? `Resolved (${flag.status})`,
+    status: flag.status as StoredClaim["scrub"]["flags"][number]["status"],
+    autoFixable: false,
+    overrideReason: flag.status === "overridden" ? flag.resolution_reason ?? undefined : undefined,
+  }));
+
+  const flags = [...open, ...resolved];
+  const openOnly = open;
+
+  const appliedFixes = resolved
+    .filter((f) => f.status === "approved")
+    .map((f) => `${f.type.replace(/_/g, " ")} — approved`);
 
   return {
     externalClaimId: claim.external_claim_id,
@@ -156,12 +189,13 @@ export async function fetchClaimDetail(
       summary: {
         claimsChecked: 1,
         linesChecked: lines?.length ?? 0,
-        flagsOpen: open.length,
-        highOrCritical: open.filter((f) => f.severity === "high" || f.severity === "critical").length,
-        estimatedDollarAtRisk: open.reduce((sum, f) => sum + (f.dollarImpact ?? 0), 0),
+        flagsOpen: openOnly.length,
+        highOrCritical: openOnly.filter((f) => f.severity === "high" || f.severity === "critical")
+          .length,
+        estimatedDollarAtRisk: openOnly.reduce((sum, f) => sum + (f.dollarImpact ?? 0), 0),
       },
     },
-    autoFixes: [],
+    autoFixes: appliedFixes,
     ingestedAt: claim.updated_at,
   };
 }

@@ -12,6 +12,7 @@ export default defineConfig({
       "@backstop/handlers/browser": path.resolve(__dirname, "../../packages/handlers/src/browser.ts"),
       "@backstop/api-client": path.resolve(__dirname, "../../packages/api-client/src/index.ts"),
       "@backstop/core": path.resolve(__dirname, "../../packages/core/src/index.ts"),
+      "@backstop/ui": path.resolve(__dirname, "../../packages/ui/src/index.ts"),
     },
   },
   server: {

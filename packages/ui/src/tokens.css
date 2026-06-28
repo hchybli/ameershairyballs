@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+@layer base {
+  :root {
+    --bs-surface: #fafaf7;
+    --bs-navy: #1c2a3a;
+    --bs-terracotta: #c55a2d;
+    --bs-success: #2e7d5b;
+    --bs-warn: #c9a227;
+    --bs-danger: #b3402f;
+
+    --background: 48 33% 98%;
+    --foreground: 213 33% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 213 33% 17%;
+    --muted: 48 20% 94%;
+    --muted-foreground: 213 15% 42%;
+    --border: 213 18% 88%;
+    --primary: 17 62% 48%;
+    --primary-foreground: 48 33% 98%;
+    --success: 152 47% 34%;
+    --warn: 45 68% 47%;
+    --danger: 8 58% 44%;
+    --radius: 0.625rem;
+  }
+
+  body {
+    font-family: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    background-color: var(--bs-surface);
+    font-feature-settings: "tnum" 1;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}

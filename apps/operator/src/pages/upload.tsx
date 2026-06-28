@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@backstop/auth";
 import { callEdgeFunction } from "@backstop/api-client";
-import { Layout } from "../components/ui";
+import { AppShell, Button, Card } from "@backstop/ui";
 
 export function UploadPage() {
   const navigate = useNavigate();
@@ -39,31 +39,35 @@ export function UploadPage() {
   }
 
   return (
-    <Layout>
+    <AppShell
+      title="Backstop Operator"
+      nav={[
+        { href: "/", label: "Work queue" },
+        { href: "/upload", label: "Upload CSV", active: true },
+      ]}
+    >
       <Link to="/" className="text-sm text-muted-foreground hover:underline">
         ← Work queue
       </Link>
-      <h1 className="mt-4 text-2xl font-semibold">Upload claims CSV</h1>
+      <h1 className="mt-4 text-2xl font-semibold text-[color:var(--bs-navy)]">Upload claims CSV</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Dentrix export or synthetic sample from <code>data/synthetic/sample-claims.csv</code>
       </p>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4 rounded-lg border p-6">
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm"
-        />
-        <button
-          type="submit"
-          disabled={!file || loading}
-          className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-40"
-        >
-          {loading ? "Uploading…" : "Upload & run scrub"}
-        </button>
-        {message && <p className="text-sm text-muted-foreground">{message}</p>}
-      </form>
-    </Layout>
+      <Card className="mt-6 p-6">
+        <form onSubmit={onSubmit} className="space-y-4">
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm"
+          />
+          <Button type="submit" variant="primary" disabled={!file || loading}>
+            {loading ? "Uploading…" : "Upload & run scrub"}
+          </Button>
+          {message && <p className="text-sm text-muted-foreground">{message}</p>}
+        </form>
+      </Card>
+    </AppShell>
   );
 }

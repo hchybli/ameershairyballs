@@ -84,11 +84,15 @@ export function getQueue(): QueueRow[] {
     const open = openFlags(claim.scrub);
     if (open.length === 0) continue;
     const top = topOpenFlag(claim.scrub.flags)!;
+    const dollarImpactAtRisk = open.reduce((s, f) => s + (f.dollarImpact ?? 0), 0);
+    const urgency = SEVERITY_RANK[top.severity];
     rows.push({
       externalClaimId: claim.externalClaimId,
       patientRef: claim.patientRef,
       payerName: claim.payerName,
       feeTotal: claim.lines.reduce((s, l) => s + l.feeBilled, 0),
+      dollarImpactAtRisk,
+      priorityScore: Math.max(dollarImpactAtRisk, 1) * urgency,
       flagsOpen: open.length,
       topFlagType: top.type,
       topFlagReason: top.reason,
@@ -96,11 +100,7 @@ export function getQueue(): QueueRow[] {
       ingestedAt: claim.ingestedAt,
     });
   }
-  return rows.sort((a, b) => {
-    const sa = SEVERITY_RANK[(a.topSeverity as FlagSeverity) ?? "low"];
-    const sb = SEVERITY_RANK[(b.topSeverity as FlagSeverity) ?? "low"];
-    return sb - sa;
-  });
+  return rows.sort((a, b) => b.priorityScore - a.priorityScore);
 }
 
 export function getClaim(externalClaimId: string): StoredClaim | null {
