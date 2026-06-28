@@ -88,6 +88,19 @@ function projectOutcomeReceived(state: ProjectedState, event: StoredEvent): void
     if (p.result === "denied") existing.denied_count += 1;
     if (p.result === "downcoded") existing.downcoded_count += 1;
 
+    if (
+      (p.result === "paid" || p.result === "downcoded") &&
+      p.paid_amount > 0
+    ) {
+      const paidSamples = existing.paid_count + existing.downcoded_count;
+      existing.avg_paid_amount =
+        existing.avg_paid_amount === null
+          ? p.paid_amount
+          : Math.round(
+              ((existing.avg_paid_amount * (paidSamples - 1) + p.paid_amount) / paidSamples) * 100,
+            ) / 100;
+    }
+
     if (p.remark_code && !existing.common_remark_codes.includes(p.remark_code)) {
       existing.common_remark_codes.push(p.remark_code);
     }

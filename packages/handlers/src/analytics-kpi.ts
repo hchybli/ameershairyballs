@@ -1,4 +1,5 @@
 import { buildKpiBundle } from "@backstop/analytics";
+import { buildPayerScorecards, readAvgDaysToPayByPayer, readPayerIntelligence } from "@backstop/intelligence";
 import type { FlagType, StoredClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
 import type { HandlerAuth } from "./types";
@@ -91,6 +92,13 @@ export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: Handle
 
   const kpi = buildKpiBundle(storedClaims, outcomes);
 
+  const intelRows = await readPayerIntelligence(db, auth.tenantId);
+  const daysToPay = await readAvgDaysToPayByPayer(db, auth.tenantId);
+  const payerScorecards = buildPayerScorecards(intelRows).map((card) => ({
+    ...card,
+    avgDaysToPay: daysToPay.get(card.payerName) ?? card.avgDaysToPay,
+  }));
+
   return {
     metric: "clean_claim_rate",
     value: kpi.cleanClaimRate / 100,
@@ -105,5 +113,6 @@ export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: Handle
     outcomesDenied: kpi.outcomesDenied,
     dollarsRecovered: kpi.dollarsRecovered,
     drillDown: kpi.drillDown,
+    payerScorecards,
   };
 }

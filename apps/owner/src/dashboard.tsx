@@ -12,6 +12,16 @@ interface KpiResponse {
   outcomesRecorded: number;
   outcomesDenied: number;
   dollarsRecovered: number;
+  payerScorecards: Array<{
+    payerName: string;
+    sampleSize: number;
+    denialRate: number;
+    downcodeFrequency: number;
+    avgDaysToPay: number | null;
+    avgPaidAmount: number | null;
+    topDenialReasons: string[];
+    cdtCodesTracked: number;
+  }>;
   drillDown: Array<{
     externalClaimId: string;
     patientRef: string;
@@ -147,6 +157,47 @@ export function DashboardPage() {
               </div>
             )}
           </Card>
+
+          {(kpi?.payerScorecards.length ?? 0) > 0 && (
+            <Card className="mt-8 overflow-hidden">
+              <div className="border-b px-4 py-3">
+                <h2 className="font-medium text-[color:var(--bs-navy)]">Payer scorecard</h2>
+                <p className="text-xs text-muted-foreground">From payer_intelligence moat · tenant RLS</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead className="border-b bg-muted/30 text-[11px] uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2">Payer</th>
+                      <th className="px-4 py-2 text-right">Denial %</th>
+                      <th className="px-4 py-2 text-right">Downcode %</th>
+                      <th className="px-4 py-2 text-right">Days to pay</th>
+                      <th className="px-4 py-2">Top denial codes</th>
+                      <th className="px-4 py-2 text-right">CDTs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {kpi?.payerScorecards.map((payer) => (
+                      <tr key={payer.payerName} className="border-b hover:bg-muted/20">
+                        <td className="px-4 py-2 font-medium">{payer.payerName}</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{payer.denialRate}%</td>
+                        <td className="px-4 py-2 text-right tabular-nums">{payer.downcodeFrequency}%</td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          {payer.avgDaysToPay != null ? payer.avgDaysToPay : "—"}
+                        </td>
+                        <td className="px-4 py-2 text-muted-foreground">
+                          {payer.topDenialReasons.length > 0
+                            ? payer.topDenialReasons.join(", ")
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-2 text-right tabular-nums">{payer.cdtCodesTracked}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
         </>
       )}
 

@@ -14,6 +14,7 @@
     "@backstop/core": "*",
     "@backstop/db": "*",
     "@backstop/events": "*",
-    "@backstop/integrations": "*"
+    "@backstop/integrations": "*",
+    "@backstop/intelligence": "*"
   }
 }

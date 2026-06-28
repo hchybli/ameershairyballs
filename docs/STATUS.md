@@ -31,9 +31,9 @@
 | WS-03 | CSV adapters | **done** | `@backstop/integrations` + parity tests |
 | WS-04 | Scrub agent | **done** | `@backstop/agents` rules engine |
 | WS-05 | Edge Functions | **done** | 5 functions; Express API removed |
-| WS-06 | Operator app | **next** | `@backstop/ui` + worklist polish |
-| WS-07 | Intelligence + analytics | pending | `@backstop/intelligence` moat |
-| WS-08 | Owner app | pending | KPI command center |
+| WS-06 | Operator app | **done** | `@backstop/ui` + ranked worklist + gate polish |
+| WS-07 | Intelligence + analytics | **done** | `@backstop/intelligence` scorecards + avg_paid fix |
+| WS-08 | Owner app | **done** | KPI command center + payer scorecard |
 | WS-09 | E2E + legacy retirement | not started | |
 
 ---
