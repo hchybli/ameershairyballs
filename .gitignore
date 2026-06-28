@@ -25,6 +25,10 @@ apps/*/dist
 *.pem
 .cursor/settings.json
 
+# stray paste artifact (e.g. apps/operator/#)
+**/\#/
+apps/operator/\#/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

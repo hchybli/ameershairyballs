@@ -6,11 +6,25 @@ Backstop Phase 1 runs on **Supabase** (Postgres + Auth + Edge Functions) with **
 
 ---
 
+## One-command workflows
+
+| Command | What it does |
+|---------|----------------|
+| `npm run dev` | Kill stale Vite processes, then start **operator** (`:5173`) + **owner** (`:5174`) together |
+| `npm run verify` | Full self-check (edge imports + deno ×5, build, all tests) — fails on first error |
+| `npm run deploy:edge` | Run `predeploy:edge`, then deploy all 5 edge functions to `ndgembdlqevybokxikkd` (requires `supabase login`) |
+| `npm run seed` | Load synthetic tenants + claims (requires `.env`) |
+
+Individual scripts still available: `dev:operator`, `dev:owner`, `check:edge`, `build:apps`, `test`, `test:events`, `test:seed`, `test:handlers`, `fix:edge-imports`.
+
+---
+
 ## Prerequisites
 
 - Node 20+
 - `.env` at repo root (see `.env.example`) with Supabase URL + anon key
-- Supabase CLI for migrations / edge deploy (optional for read-only UI against remote)
+- [Supabase CLI](https://supabase.com/docs/guides/cli) for edge deploy (`supabase login` once)
+- Deno (for `check:edge` / `verify`)
 
 ---
 
@@ -19,11 +33,15 @@ Backstop Phase 1 runs on **Supabase** (Postgres + Auth + Edge Functions) with **
 ```bash
 npm install
 npm run seed          # synthetic tenants + claims (requires .env)
-npm run dev:operator  # http://localhost:5173
-npm run dev:owner     # http://localhost:5174
+npm run dev           # operator http://localhost:5173 + owner http://localhost:5174
 ```
 
-Or both SPAs: `npm run dev`
+Before shipping edge function changes:
+
+```bash
+npm run verify        # full green/red self-check
+npm run deploy:edge   # after verify passes; needs supabase login
+```
 
 ### Demo credentials (synthetic)
 
@@ -53,13 +71,9 @@ Apps call edge functions via `@backstop/api-client` (JWT from Supabase Auth).
 | `ingest-outcomes` | 835 CSV → `outcome.received` + intelligence |
 | `analytics-kpi` | Clean-claim rate + drill-down |
 
-Local Deno check (must pass before deploy — same resolver as Supabase remote bundler):
+`npm run check:edge` (included in `verify`) validates import paths and runs `deno check` on all five functions — same resolver Supabase deploy uses.
 
-```bash
-npm run check:edge
-```
-
-Manual equivalent:
+Manual deno check:
 
 ```bash
 cd supabase/functions
@@ -68,21 +82,13 @@ for fn in ingest-claims run-scrub gate-action ingest-outcomes analytics-kpi; do
 done
 ```
 
-Deploy (human — requires Supabase CLI login):
-
-```bash
-npm run predeploy:edge   # guardrail — must pass first
-supabase functions deploy ingest-claims run-scrub gate-action ingest-outcomes analytics-kpi \
-  --project-ref ndgembdlqevybokxikkd
-```
-
 ---
 
 ## Monorepo layout
 
 ```
-apps/operator       Vite React — work queue, claim gate, upload
-apps/owner          Vite React — KPI dashboard
+apps/operator       Vite React — work queue, claim gate, upload (port 5173)
+apps/owner          Vite React — KPI dashboard (port 5174)
 packages/events     Event spine + projectors
 packages/handlers   Edge handler logic + browser read-models
 packages/api-client Edge function fetch helper
@@ -99,18 +105,6 @@ supabase/functions  Edge function entrypoints
 
 ---
 
-## Tests
-
-```bash
-npm run test           # unit: parsers, scrub, projectors
-npm run test:events    # replay integration
-npm run test:seed      # RLS + idempotent seed
-npm run test:handlers  # handler integration
-npm run build:apps     # Vite production build
-```
-
----
-
 ## Legacy Next.js prototype
 
 ```bash
@@ -123,8 +117,4 @@ See [DEMO_WALKTHROUGH.md](./DEMO_WALKTHROUGH.md). Do not add features here.
 
 ## What's next
 
-- WS-06: `@backstop/ui` + operator polish
-- WS-08: Owner KPI command center
-- WS-07: `@backstop/intelligence` payer scorecards
-
-See [BUILD_READINESS.md](./BUILD_READINESS.md) and [HANDOFF_BUNGAROO.md](./HANDOFF_BUNGAROO.md).
+See [STATUS.md](./STATUS.md), [BUILD_READINESS.md](./BUILD_READINESS.md), and [HANDOFF_BUNGAROO.md](./HANDOFF_BUNGAROO.md).

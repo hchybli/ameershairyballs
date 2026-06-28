@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev:operator & npm run dev:owner",
+    "dev": "bash scripts/dev-all.sh",
     "dev:api": "npm run dev -w @backstop/api",
     "dev:operator": "npm run dev -w @backstop/operator",
     "dev:owner": "npm run dev -w @backstop/owner",
@@ -23,6 +23,8 @@
     "check:edge": "tsx scripts/check-edge-functions.ts",
     "fix:edge-imports": "tsx scripts/fix-edge-import-extensions.ts",
     "predeploy:edge": "npm run check:edge",
+    "verify": "tsx scripts/verify-all.ts",
+    "deploy:edge": "bash scripts/deploy-edge.sh",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },
   "dependencies": {
