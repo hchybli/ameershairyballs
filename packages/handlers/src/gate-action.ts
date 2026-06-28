@@ -1,6 +1,6 @@
 import type { BackstopServiceClient } from "@backstop/db";
 import { BillingEventType, emit } from "@backstop/events";
-import type { HandlerAuth } from "./types";
+import type { HandlerAuth } from "./types.ts";
 
 export interface GateActionInput {
   flagId: string;

@@ -1,3 +1,3 @@
-export * from "./flag";
-export * from "./claim";
-export * from "./outcome";
+export * from "./flag.ts";
+export * from "./claim.ts";
+export * from "./outcome.ts";

@@ -1,4 +1,4 @@
-export { readAvgDaysToPayByPayer } from "./days-to-pay";
-export { readPayerIntelligence } from "./read";
-export { buildPayerScorecards } from "./scorecard";
-export type { PayerIntelRow, PayerScorecard } from "./types";
+export { readAvgDaysToPayByPayer } from "./days-to-pay.ts";
+export { readPayerIntelligence } from "./read.ts";
+export { buildPayerScorecards } from "./scorecard.ts";
+export type { PayerIntelRow, PayerScorecard } from "./types.ts";

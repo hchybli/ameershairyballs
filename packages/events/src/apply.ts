@@ -1,8 +1,8 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import type { StoredEvent } from "./types";
-import { projectEvent } from "./projectors/index";
-import type { ProjectedState } from "./projectors/state";
-import { toStoredEvent } from "./projectors/state";
+import type { StoredEvent } from "./types.ts";
+import { projectEvent } from "./projectors/index.ts";
+import type { ProjectedState } from "./projectors/state.ts";
+import { toStoredEvent } from "./projectors/state.ts";
 
 const READ_MODEL_TABLES = [
   "claim_lines_current",

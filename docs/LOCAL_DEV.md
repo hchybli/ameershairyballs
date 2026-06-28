@@ -53,7 +53,13 @@ Apps call edge functions via `@backstop/api-client` (JWT from Supabase Auth).
 | `ingest-outcomes` | 835 CSV → `outcome.received` + intelligence |
 | `analytics-kpi` | Clean-claim rate + drill-down |
 
-Local Deno check:
+Local Deno check (must pass before deploy — same resolver as Supabase remote bundler):
+
+```bash
+npm run check:edge
+```
+
+Manual equivalent:
 
 ```bash
 cd supabase/functions
@@ -65,6 +71,7 @@ done
 Deploy (human — requires Supabase CLI login):
 
 ```bash
+npm run predeploy:edge   # guardrail — must pass first
 supabase functions deploy ingest-claims run-scrub gate-action ingest-outcomes analytics-kpi \
   --project-ref ndgembdlqevybokxikkd
 ```

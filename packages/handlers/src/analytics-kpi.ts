@@ -2,7 +2,7 @@ import { buildKpiBundle } from "@backstop/analytics";
 import { buildPayerScorecards, readAvgDaysToPayByPayer, readPayerIntelligence } from "@backstop/intelligence";
 import type { FlagType, StoredClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
-import type { HandlerAuth } from "./types";
+import type { HandlerAuth } from "./types.ts";
 
 export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: HandlerAuth) {
   const { data: claims, error: claimsError } = await db

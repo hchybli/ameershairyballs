@@ -1,4 +1,4 @@
-import type { ScrubResult } from "./flag";
+import type { ScrubResult } from "./flag.ts";
 
 export interface ParsedClaimLine {
   cdtCode: string;

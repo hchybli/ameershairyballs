@@ -1,4 +1,4 @@
-import type { PayerIntelRow, PayerScorecard } from "./types";
+import type { PayerIntelRow, PayerScorecard } from "./types.ts";
 
 function pct(numerator: number, denominator: number): number {
   if (denominator === 0) return 0;

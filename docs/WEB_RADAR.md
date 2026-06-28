@@ -10,8 +10,8 @@ Notable external findings from standing **WEB RADAR** directive. Propose changes
 
 | Finding | Source / note | Proposal |
 |---------|---------------|----------|
-| Supabase Edge Functions support monorepo import maps via root `deno.json` + `sloppy-imports` | Supabase docs; validated in-repo WS-05 | Keep current pattern; document in LOCAL_DEV when edge deploy section is written |
-| Vite + extensionless TS imports remain the Node-side convention; Deno resolves via sloppy-imports | In-repo verification | Do not re-introduce `.ts` suffixes in `packages/` |
+| Supabase **remote** deploy bundler does **not** honor Deno `unstable sloppy-imports` — extensionless relative imports in `packages/` fail at bundle time while local `deno check` with sloppy-imports passes | `supabase functions deploy --debug` 2026-06-28; fixed with explicit `.ts` on edge-package relative imports + `npm run check:edge` | Never rely on sloppy-imports; run `check:edge` before deploy |
+| Import-map `scopes` in deno.json do not fix remote bundler for extensionless relative imports (Deno local scopes also insufficient in our layout) | Attempted generator 2026-06-28 | Use explicit `.ts` suffixes in edge packages instead |
 
 ### Competitors (dental RCM / AI)
 

@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { buildPayerScorecards } from "./scorecard";
-import type { PayerIntelRow } from "./types";
+import { buildPayerScorecards } from "./scorecard.ts";
+import type { PayerIntelRow } from "./types.ts";
 
 describe("payer scorecards", () => {
   test("aggregates CDT rows per payer", () => {

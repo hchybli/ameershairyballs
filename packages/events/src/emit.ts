@@ -1,9 +1,9 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import { deterministicEventId } from "./idempotency";
-import type { EmitInput, EmitResult, StoredEvent } from "./types";
-import { foldEvents, projectEvent } from "./projectors/index";
-import { applyProjectedState, applySingleEventProjection } from "./apply";
-import { toStoredEvent } from "./projectors/state";
+import { deterministicEventId } from "./idempotency.ts";
+import type { EmitInput, EmitResult, StoredEvent } from "./types.ts";
+import { foldEvents, projectEvent } from "./projectors/index.ts";
+import { applyProjectedState, applySingleEventProjection } from "./apply.ts";
+import { toStoredEvent } from "./projectors/state.ts";
 
 export async function emit(db: BackstopServiceClient, input: EmitInput): Promise<EmitResult> {
   const dedupeKey = input.dedupeKey;
@@ -89,4 +89,4 @@ export async function deriveState(
   return foldEvents(related);
 }
 
-export { projectEvent, foldEvents } from "./projectors/index";
+export { projectEvent, foldEvents } from "./projectors/index.ts";

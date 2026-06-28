@@ -59,6 +59,16 @@ State workstream ID (WS-XX) and link acceptance criteria from WORKSTREAMS.md.
 
 - For any task you can run, verify it yourself — install, build, typecheck, boot the dev servers (start, confirm clean, stop), run the full test suite (`npm run test`, `test:events`, `test:seed`, `test:handlers`), `deno check` the edge functions, lint.
 - Iterate until green. Only escalate steps you truly cannot do here (browser clicks, interactive CLI logins, blocked live-DB/deploy) and name the exact command for the human.
+- Before edge function changes or deploy-related work, run `npm run check:edge` (must pass).
+
+### EDGE IMPORTS (Supabase deploy — do not regress)
+
+Supabase's **remote** bundler does **not** honor Deno `sloppy-imports`. Relative imports in edge-reachable packages (`core`, `agents`, `integrations`, `events`, `db`, `analytics`, `handlers`, `intelligence`) **must** use explicit `.ts` extensions (e.g. `from "./types.ts"`). Apps-only packages (`ui`, `auth` React) stay extensionless. App tsconfigs set `allowImportingTsExtensions: true` for tsc.
+
+- After editing any edge package, run `npm run check:edge` — it fails on extensionless relative imports and runs `deno check` on all 5 functions without sloppy-imports.
+- Auto-fix drift: `npm run fix:edge-imports`
+- `@backstop/*` bare imports resolve via `supabase/functions/deno.json` import map (with `.ts` entry paths).
+- **Never** rely on `unstable sloppy-imports` for deploy — local-only trap.
 
 ### WEB RADAR
 

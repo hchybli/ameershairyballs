@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ClaimFlag } from "@backstop/core";
-import { parseClaimsCsv as legacyParseClaimsCsv } from "../../../../src/lib/csv/parse-claims-csv";
-import { scrubClaims as legacyScrubClaims } from "../../../../src/lib/rules/scrub-claim";
+import { parseClaimsCsv as legacyParseClaimsCsv } from "../../../../src/lib/csv/parse-claims-csv.ts";
+import { scrubClaims as legacyScrubClaims } from "../../../../src/lib/rules/scrub-claim.ts";
 import { parseClaimsCsv } from "@backstop/integrations";
-import { scrubClaims } from "./engine";
+import { scrubClaims } from "./engine.ts";
 
 function flagSignature(flag: ClaimFlag): string {
   return [

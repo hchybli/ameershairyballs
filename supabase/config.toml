@@ -3,8 +3,7 @@
 
 project_id = "ndgembdlqevybokxikkd"
 
-# deno.json: @backstop/* import map + sloppy-imports for extensionless relative imports in packages/.
-# Each function also has its own deno.json with sloppy-imports (read at deploy time).
+# deno.json import map: @backstop/* aliases (paths include .ts). Edge packages use explicit .ts on relative imports — see npm run check:edge.
 [functions.ingest-claims]
 verify_jwt = true
 import_map = "./functions/deno.json"

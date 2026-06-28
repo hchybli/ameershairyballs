@@ -1,10 +1,10 @@
-export { createBrowserClient, isBrowserClientConfigured, type BackstopSupabaseClient } from "./client";
-export { createServiceClient, isServiceClientConfigured, type BackstopServiceClient } from "./server";
+export { createBrowserClient, isBrowserClientConfigured, type BackstopSupabaseClient } from "./client.ts";
+export { createServiceClient, isServiceClientConfigured, type BackstopServiceClient } from "./server.ts";
 export {
   tenantScope,
   TENANT_SCOPED_TABLES,
   type TenantScopedTable,
   type TenantScopedRow,
   type TenantScopedInsert,
-} from "./tenant";
-export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types";
+} from "./tenant.ts";
+export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types.ts";

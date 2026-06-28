@@ -1,5 +1,5 @@
-import { BillingEventType } from "../types";
-import { deterministicClaimId, deterministicEventId } from "../idempotency";
+import { BillingEventType } from "../types.ts";
+import { deterministicClaimId, deterministicEventId } from "../idempotency.ts";
 import type {
   ClaimIngestedPayload,
   FlagApprovedPayload,
@@ -7,13 +7,13 @@ import type {
   FlagRaisedPayload,
   OutcomeReceivedPayload,
   StoredEvent,
-} from "../types";
+} from "../types.ts";
 import {
   claimKey,
   emptyProjectedState,
   payerIntelKey,
   type ProjectedState,
-} from "./state";
+} from "./state.ts";
 
 function asPayload<T>(payload: Record<string, unknown>): T {
   return payload as T;

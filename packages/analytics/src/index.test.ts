@@ -5,7 +5,7 @@ import {
   computeDenialRate,
   computeDollarsRecovered,
   isClaimClean,
-} from "./index";
+} from "./index.ts";
 import type { StoredClaim } from "@backstop/core";
 
 const baseClaim = (flags: StoredClaim["scrub"]["flags"]): StoredClaim => ({

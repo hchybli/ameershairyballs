@@ -1,4 +1,4 @@
-import type { StoredEvent } from "../types";
+import type { StoredEvent } from "../types.ts";
 
 export interface ProjectedClaim {
   id: string;

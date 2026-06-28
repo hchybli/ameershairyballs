@@ -20,6 +20,9 @@
     "test:seed": "tsx --env-file=.env --test scripts/seed-rls.test.ts",
     "test:events": "tsx --env-file=.env --test scripts/events-replay.test.ts",
     "test:handlers": "tsx --env-file=.env --test scripts/handlers.test.ts",
+    "check:edge": "tsx scripts/check-edge-functions.ts",
+    "fix:edge-imports": "tsx scripts/fix-edge-import-extensions.ts",
+    "predeploy:edge": "npm run check:edge",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },
   "dependencies": {

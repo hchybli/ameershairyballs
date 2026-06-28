@@ -1,2 +1,2 @@
-export { parseClaimsCsv } from "./adapters/csv-dentrix";
-export { parseOutcomesCsv } from "./adapters/csv-835";
+export { parseClaimsCsv } from "./adapters/csv-dentrix.ts";
+export { parseOutcomesCsv } from "./adapters/csv-835.ts";

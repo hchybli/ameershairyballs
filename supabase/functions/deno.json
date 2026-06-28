@@ -1,5 +1,4 @@
 {
-  "unstable": ["sloppy-imports"],
   "imports": {
     "@backstop/agents": "../../packages/agents/src/index.ts",
     "@backstop/analytics": "../../packages/analytics/src/index.ts",

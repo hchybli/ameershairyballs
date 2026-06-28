@@ -2,7 +2,7 @@ import { scrubClaimsWithAutoFix } from "@backstop/agents";
 import type { ParsedClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
 import { BillingEventType, emit, flagRaisedDedupeKey } from "@backstop/events";
-import type { HandlerAuth } from "./types";
+import type { HandlerAuth } from "./types.ts";
 
 export interface RunScrubInput {
   claimIds: string[];

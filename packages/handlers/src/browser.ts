@@ -1,1 +1,1 @@
-export { fetchWorkQueue, fetchClaimDetail } from "./read-models";
+export { fetchWorkQueue, fetchClaimDetail } from "./read-models.ts";

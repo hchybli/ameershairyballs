@@ -1,5 +1,5 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import type { PayerIntelRow } from "./types";
+import type { PayerIntelRow } from "./types.ts";
 
 export async function readPayerIntelligence(
   db: BackstopServiceClient,
