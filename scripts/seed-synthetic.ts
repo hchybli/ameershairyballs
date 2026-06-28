@@ -15,11 +15,13 @@ import { pathToFileURL } from "node:url";
 import { createServiceClient } from "../packages/db/src/server.ts";
 import { parseClaimsCsv } from "../packages/integrations/src/adapters/csv-dentrix.ts";
 import {
+  BillingEventType,
   claimIngestedDedupeKey,
-  emitEventIdempotent,
+  emit,
   outcomeReceivedDedupeKey,
-  type ServiceClient,
-} from "./seed-lib.ts";
+  replay,
+} from "../packages/events/src/index.ts";
+import type { ServiceClient } from "./seed-lib.ts";
 
 const ROOT = resolve(import.meta.dirname ?? ".", "..");
 
@@ -65,43 +67,11 @@ const TENANT_B = {
   ],
 };
 
-interface ClaimIngestedPayload {
-  event_schema_version: number;
-  tenant_id: string;
-  clinic_id: string;
-  external_claim_id: string;
-  patient_ref: string;
-  payer_name: string;
-  lines: Array<{
-    cdt_code: string;
-    fee_billed: number;
-    fee_allowed: number | null;
-    tooth: string | null;
-    quadrant: string | null;
-  }>;
-  source: string;
-  ingested_at: string;
-  dedupe_key?: string;
-}
-
-interface OutcomeReceivedPayload {
-  event_schema_version: number;
-  tenant_id: string;
-  clinic_id: string;
-  external_claim_id: string;
-  result: "paid" | "denied" | "downcoded";
-  paid_amount: number;
-  remark_code: string | null;
-  remark_text: string | null;
-  received_at: string;
-  dedupe_key?: string;
-}
-
 function loadFixture(relativePath: string): string {
   return readFileSync(resolve(ROOT, relativePath), "utf8");
 }
 
-function parseOutcomesCsv(csvText: string): Omit<OutcomeReceivedPayload, "tenant_id" | "clinic_id">[] {
+function parseOutcomesCsv(csvText: string) {
   const lines = csvText
     .split(/\r?\n/)
     .map((l) => l.trim())
@@ -111,9 +81,8 @@ function parseOutcomesCsv(csvText: string): Omit<OutcomeReceivedPayload, "tenant
 
   return lines.slice(1).map((line) => {
     const cols = line.split(",");
-    const result = cols[idx.result]?.trim() as OutcomeReceivedPayload["result"];
+    const result = cols[idx.result]?.trim() as "paid" | "denied" | "downcoded";
     return {
-      event_schema_version: 1,
       external_claim_id: cols[idx.external_claim_id]?.trim() ?? "",
       result,
       paid_amount: Number(cols[idx.paid_amount]?.trim() ?? 0),
@@ -220,99 +189,6 @@ async function ensureClinicMember(
   }
 }
 
-async function projectClaimIngested(
-  db: ServiceClient,
-  tenantId: string,
-  clinicId: string,
-  eventId: string,
-  payload: ClaimIngestedPayload,
-) {
-  const { data: claim, error: claimError } = await db
-    .from("claims_current")
-    .upsert(
-      {
-        tenant_id: tenantId,
-        clinic_id: clinicId,
-        external_claim_id: payload.external_claim_id,
-        patient_ref: payload.patient_ref,
-        payer_name: payload.payer_name,
-        status: "ingested",
-        last_event_id: eventId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "tenant_id,external_claim_id" },
-    )
-    .select("id")
-    .single();
-
-  if (claimError || !claim) {
-    throw new Error(`Failed to project claim ${payload.external_claim_id}: ${claimError?.message}`);
-  }
-
-  await db.from("claim_lines_current").delete().eq("claim_id", claim.id);
-
-  const lineRows = payload.lines.map((line, lineIndex) => ({
-    claim_id: claim.id,
-    line_index: lineIndex,
-    cdt_code: line.cdt_code,
-    fee_billed: line.fee_billed,
-    fee_allowed: line.fee_allowed,
-    tooth: line.tooth,
-    quadrant: line.quadrant,
-  }));
-
-  const { error: linesError } = await db.from("claim_lines_current").insert(lineRows);
-  if (linesError) {
-    throw new Error(`Failed to project lines for ${payload.external_claim_id}: ${linesError.message}`);
-  }
-
-  return claim.id;
-}
-
-async function projectOutcomeReceived(
-  db: ServiceClient,
-  tenantId: string,
-  eventId: string,
-  payload: OutcomeReceivedPayload,
-) {
-  const { data: existingOutcome } = await db
-    .from("outcomes")
-    .select("id")
-    .eq("source_event_id", eventId)
-    .maybeSingle();
-
-  if (existingOutcome) {
-    return;
-  }
-
-  const { data: claim, error: claimLookupError } = await db
-    .from("claims_current")
-    .select("id")
-    .eq("tenant_id", tenantId)
-    .eq("external_claim_id", payload.external_claim_id)
-    .maybeSingle();
-
-  if (claimLookupError || !claim) {
-    throw new Error(
-      `Cannot project outcome for ${payload.external_claim_id}: ${claimLookupError?.message ?? "claim not found"}`,
-    );
-  }
-
-  const { error } = await db.from("outcomes").insert({
-    tenant_id: tenantId,
-    claim_id: claim.id,
-    result: payload.result,
-    paid_amount: payload.paid_amount,
-    remark_code: payload.remark_code,
-    remark_text: payload.remark_text,
-    source_event_id: eventId,
-  });
-
-  if (error) {
-    throw new Error(`Failed to project outcome for ${payload.external_claim_id}: ${error.message}`);
-  }
-}
-
 async function seedClinicFixtures(
   db: ServiceClient,
   tenantId: string,
@@ -330,33 +206,27 @@ async function seedClinicFixtures(
 
   for (const claim of parsed.claims) {
     const dedupeKey = claimIngestedDedupeKey(tenantId, clinicId, claim.externalClaimId);
-    const payload: ClaimIngestedPayload = {
-      event_schema_version: 1,
-      tenant_id: tenantId,
-      clinic_id: clinicId,
-      external_claim_id: claim.externalClaimId,
-      patient_ref: claim.patientRef,
-      payer_name: claim.payerName,
-      lines: claim.lines.map((line) => ({
-        cdt_code: line.cdtCode,
-        fee_billed: line.feeBilled,
-        fee_allowed: line.feeAllowed,
-        tooth: line.tooth,
-        quadrant: line.quadrant,
-      })),
-      source: "csv_dentrix",
-      ingested_at: "2026-06-28T12:00:00.000Z",
-    };
-
-    const { id: eventId, created } = await emitEventIdempotent(db, {
+    const { created } = await emit(db, {
       tenantId,
-      type: "claim.ingested",
+      clinicId,
+      type: BillingEventType.ClaimIngested,
       dedupeKey,
-      payload,
       actorId,
+      payload: {
+        external_claim_id: claim.externalClaimId,
+        patient_ref: claim.patientRef,
+        payer_name: claim.payerName,
+        lines: claim.lines.map((line) => ({
+          cdt_code: line.cdtCode,
+          fee_billed: line.feeBilled,
+          fee_allowed: line.feeAllowed,
+          tooth: line.tooth,
+          quadrant: line.quadrant,
+        })),
+        source: "csv_dentrix",
+        ingested_at: "2026-06-28T12:00:00.000Z",
+      },
     });
-
-    await projectClaimIngested(db, tenantId, clinicId, eventId, payload);
     console.log(
       `  claim.ingested → ${claim.externalClaimId} (${created ? "created" : "skipped"})`,
     );
@@ -365,21 +235,21 @@ async function seedClinicFixtures(
   const outcomesCsv = loadFixture(outcomesFile);
   for (const row of parseOutcomesCsv(outcomesCsv)) {
     const dedupeKey = outcomeReceivedDedupeKey(tenantId, row.external_claim_id);
-    const payload: OutcomeReceivedPayload = {
-      ...row,
-      tenant_id: tenantId,
-      clinic_id: clinicId,
-    };
-
-    const { id: eventId, created } = await emitEventIdempotent(db, {
+    const { created } = await emit(db, {
       tenantId,
-      type: "outcome.received",
+      clinicId,
+      type: BillingEventType.OutcomeReceived,
       dedupeKey,
-      payload,
       actorId: outcomeActorId,
+      payload: {
+        external_claim_id: row.external_claim_id,
+        result: row.result,
+        paid_amount: row.paid_amount,
+        remark_code: row.remark_code,
+        remark_text: row.remark_text,
+        received_at: row.received_at,
+      },
     });
-
-    await projectOutcomeReceived(db, tenantId, eventId, payload);
     console.log(
       `  outcome.received → ${row.external_claim_id} (${row.result}, ${created ? "created" : "skipped"})`,
     );
@@ -468,6 +338,8 @@ export async function runSeed(): Promise<void> {
   console.log(
     `  Isolation operator: ${CREDENTIALS.isolationOperator.email} / ${CREDENTIALS.isolationOperator.password}`,
   );
+
+  await replay(db);
 }
 
 const isDirectRun =
