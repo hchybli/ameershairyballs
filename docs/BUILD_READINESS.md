@@ -1,8 +1,8 @@
 # Build readiness — pre-implementation checklist
 
-**Purpose:** Everything that must be true before Bungaroo starts WS-00 (monorepo scaffold).  
-**Last updated:** 2026-06-26  
-**Status:** **Ready to build backend spine (WS-00–WS-05).** UI specs locked for WS-06/08.
+**Purpose:** Checklist for Phase 1 delivery. Backend spine (WS-01–05) is **complete**; UI + intelligence next.  
+**Last updated:** 2026-06-28  
+**Strategy:** [STRATEGY.md](./STRATEGY.md) · **Status:** [STATUS.md](./STATUS.md)
 
 ---
 
@@ -44,7 +44,7 @@ From competitive review ([USER_FLOWS.md](./architecture/USER_FLOWS.md)):
 
 | Decision | Choice |
 |----------|--------|
-| Monorepo | Turborepo + pnpm |
+| Monorepo | **npm workspaces today** → Turborepo + pnpm (WS-00) |
 | Frontend | Vite React SPA (not Next.js for new code) |
 | Backend | Supabase Postgres + Auth + Edge Functions + RLS |
 | State | Append-only events + projectors (CQRS-lite) |
@@ -55,27 +55,23 @@ From competitive review ([USER_FLOWS.md](./architecture/USER_FLOWS.md)):
 
 ---
 
-## Build order (for Bungaroo)
+## Build order (current)
 
 ```
-Phase A — safe to start now (no UI dependency)
-  WS-00  Monorepo + CI
+Done — Phase A spine
   WS-01  DB + RLS + seed
   WS-02  packages/events
   WS-03  packages/integrations (CSV adapters)
   WS-04  packages/agents (scrub rules)
   WS-05  Edge Functions
-  WS-07  packages/analytics + intelligence
 
-Phase B — after packages/ui stub exists
-  WS-06  apps/operator (follow MEDIUM_BUILD + USER_FLOWS)
-  WS-08  apps/owner
-
-Phase C — integration
+Next — Phase B/C
+  WS-06  apps/operator + packages/ui
+  WS-08  apps/owner (KPI command center)
+  WS-07  packages/intelligence (moat)
+  WS-00  Turborepo + pnpm (can parallelize)
   WS-09  E2E demo + legacy retirement
 ```
-
-`packages/ui` can scaffold in parallel with WS-00.
 
 ---
 

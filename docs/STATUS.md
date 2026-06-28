@@ -1,8 +1,8 @@
 # Project status
 
-**Last updated:** 2026-06-26  
-**Phase:** 1 rough draft — React apps + local API running  
-**Updated by:** US team
+**Last updated:** 2026-06-28  
+**Phase:** 1 in progress — Supabase spine + React apps  
+**Strategy:** [STRATEGY.md](./STRATEGY.md) · **Competitors:** [COMPETITIVE_BRIEF.md](./COMPETITIVE_BRIEF.md)
 
 ---
 
@@ -10,47 +10,43 @@
 
 | Area | Status |
 |------|--------|
-| Product vision | Documented |
-| Architecture + workstreams | **Done** |
-| UX flows (Vyne / InsideDesk) | **Done** — [USER_FLOWS.md](./architecture/USER_FLOWS.md) |
-| Medium build spec | **Done** — aligned with USER_FLOWS |
-| Domain research (starter) | **Done** — [research/](./research/README.md) |
-| Build readiness checklist | **Done** — [BUILD_READINESS.md](./BUILD_READINESS.md) |
-| Legacy Next.js prototype | **Done** — reference only (`src/`) |
-| Turborepo monorepo | npm workspaces (rough draft) |
-| Local API + React apps | **In progress** — `apps/api`, `apps/operator`, `apps/owner` |
-| Event-sourced DB | Migration written, not applied (WS-01) |
-| Operator app | **Rough draft** — work queue, claim gate, upload |
-| Owner app | **Rough draft** — KPI + outcomes upload |
+| Product vision + strategy | **Done** — [STRATEGY.md](./STRATEGY.md), [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) |
+| Architecture + workstreams | **Done** — [WORKSTREAMS.md](./architecture/WORKSTREAMS.md) |
+| Backend spine (WS-01–05) | **Done** — events, scrub, edge functions, RLS + seed |
+| Monorepo | **npm workspaces** (Turborepo/pnpm = WS-00 target) |
+| Operator app | **Rough draft** — wired to Supabase; WS-06 polish pending |
+| Owner app | **Rough draft** — KPI stub; WS-08 pending |
+| Intelligence moat (WS-07) | **Stub** — projector + scorecard next |
+| Legacy Next.js | Reference only (`src/`) — do not extend |
 
 ---
 
 ## Workstreams
 
-| ID | Name | Status | Owner | Notes |
-|----|------|--------|-------|-------|
-| WS-00 | Monorepo + CI | not started | Bungaroo | **Start here** |
-| WS-01 | DB + RLS + seed | not started | Bungaroo | |
-| WS-02 | Events spine | not started | Bungaroo | |
-| WS-03 | Core + CSV adapters | not started | Bungaroo | Synthetic CSV locked |
-| WS-04 | Scrub agent | not started | Bungaroo | US reviews rules |
-| WS-05 | Edge Functions | not started | Bungaroo | |
-| WS-06 | Operator app | not started | Bungaroo | Spec: USER_FLOWS + MEDIUM_BUILD |
-| WS-07 | Analytics + intelligence | not started | Bungaroo | |
-| WS-08 | Owner app | not started | Bungaroo | Single KPI locked |
-| WS-09 | E2E + legacy retirement | not started | Bungaroo | |
+| ID | Name | Status | Notes |
+|----|------|--------|-------|
+| WS-00 | Monorepo + CI | not started | Turborepo + pnpm migration |
+| WS-01 | DB + RLS + seed | **done** | Migrations 002–003, idempotent seed, RLS tests |
+| WS-02 | Events spine | **done** | `@backstop/events` emit + projectors + replay |
+| WS-03 | CSV adapters | **done** | `@backstop/integrations` + parity tests |
+| WS-04 | Scrub agent | **done** | `@backstop/agents` rules engine |
+| WS-05 | Edge Functions | **done** | 5 functions; Express API removed |
+| WS-06 | Operator app | **next** | `@backstop/ui` + worklist polish |
+| WS-07 | Intelligence + analytics | pending | `@backstop/intelligence` moat |
+| WS-08 | Owner app | pending | KPI command center |
+| WS-09 | E2E + legacy retirement | not started | |
 
 ---
 
-## Doc map (quick links)
+## Doc map
 
 | Need | Doc |
 |------|-----|
-| Start building | [BUILD_READINESS.md](./BUILD_READINESS.md) |
+| North star | [STRATEGY.md](./STRATEGY.md) |
+| Competitors | [COMPETITIVE_BRIEF.md](./COMPETITIVE_BRIEF.md) |
+| Local dev | [LOCAL_DEV.md](./LOCAL_DEV.md) |
 | Bungaroo onboarding | [HANDOFF_BUNGAROO.md](./HANDOFF_BUNGAROO.md) |
-| What screens look like | [MEDIUM_BUILD.md](./architecture/MEDIUM_BUILD.md) + [canvas](../canvases/backstop-phase1-build.canvas.tsx) |
-| Why we designed it this way | [USER_FLOWS.md](./architecture/USER_FLOWS.md) |
-| Payer / CDT rules | [research/PAYER_RULES_V1.md](./research/PAYER_RULES_V1.md) |
+| Reconcile history | [DOC_RECONCILE_LOG.md](./DOC_RECONCILE_LOG.md) |
 
 ---
 
@@ -58,19 +54,12 @@
 
 | Demo | How |
 |------|-----|
-| **React (now)** | `npm run dev:api` + `npm run dev:operator` + `npm run dev:owner` — see [LOCAL_DEV.md](./LOCAL_DEV.md) |
-| Legacy Next.js | `npm run dev:legacy` → upload sample CSVs |
-| Target (Phase 1) | `scripts/demo-e2e.sh` (WS-09) |
-| Visual preview | [Canvas: Phase 1 build](/Users/ameerabouhouli/.cursor/projects/Users-ameerabouhouli-ameershairyballs-ameershairyballs/canvases/backstop-phase1-build.canvas.tsx) |
+| **React apps** | `npm run dev:operator` + `npm run dev:owner` — see [LOCAL_DEV.md](./LOCAL_DEV.md) |
+| **Synthetic auth** | `owner@demo.backstop.local` / `demo-owner-2026!`, `operator@demo.backstop.local` / `demo-operator-2026!` |
+| Legacy Next.js | `npm run dev:legacy` — reference only |
 
 ---
 
 ## Open decisions
 
-See [OPEN_QUESTIONS.md](./OPEN_QUESTIONS.md). Does **not** block WS-00–WS-05.
-
----
-
-## How to update this file
-
-Every PR that completes or starts a workstream must update the table above. See [DOC_MAINTENANCE.md](./DOC_MAINTENANCE.md).
+[OPEN_QUESTIONS.md](./OPEN_QUESTIONS.md)

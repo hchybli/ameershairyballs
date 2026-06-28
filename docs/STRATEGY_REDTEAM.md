@@ -1,6 +1,6 @@
 # Strategy red-team log
 
-Sessions since last red-team: **1**
+Sessions since last red-team: **2**
 
 Next scheduled red-team: **orchestrated session 3** (when the counter above reaches 3), unless a major architecture/strategy decision or WEB_RADAR threat triggers it sooner.
 

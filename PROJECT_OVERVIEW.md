@@ -8,6 +8,8 @@
 
 ## Vision
 
+**North star:** [docs/STRATEGY.md](docs/STRATEGY.md) · **Competitors:** [docs/COMPETITIVE_BRIEF.md](docs/COMPETITIVE_BRIEF.md)
+
 Build the full software ecosystem for dentistry. Staged:
 
 - **Stage 1 — now: Dental billing.** Cover every dental billing workflow we can. Start with small / independent clinics. Goal: accumulate the proprietary claims → payer → outcome data moat.
@@ -26,7 +28,7 @@ The endgame is an all-in-one practice OS better than Archy. We don't get there b
 
 ## Current scope
 
-**Scaffold the full practice OS now; implement billing only.** Every module's boundary, shell, and contract exists from the start (a Bangalore dev team fills in the non-billing modules against a stable contract), but only billing-related modules are implemented here. Non-billing modules (scheduling, clinical, imaging, comms, patients) are clean, documented empty shells — defined, not built. Foundation correctness comes first, because errors replicate across every module the team builds on top.
+**Scaffold the full practice OS now; implement billing first.** Billing is the wedge (integrate on existing PMS, zero migration). Non-billing modules get event-spine namespaces and schema stubs now; full PMS comes after billing dominance — see [STRATEGY.md](docs/STRATEGY.md).
 
 ---
 
@@ -80,9 +82,10 @@ Claim built in clinic's PMS
 
 ---
 
-## Tech stack (confirm before building)
+## Tech stack
 
-- **Frontend:** React (Vite) + TypeScript + Tailwind + shadcn/ui, mobile-first. No Next.js.
+- **Monorepo:** npm workspaces today → Turborepo + pnpm (WS-00)
+- **Frontend:** React (Vite) + TypeScript + Tailwind + shadcn/ui, mobile-first. No Next.js for new code.
 - **Backend:** Supabase Edge Functions for app/API logic + AWS (Lambda/Fargate) for agent jobs & EDI parsing
 - **DB / Auth:** Supabase (Postgres, Auth, Storage) — HIPAA BAA before any real data, RLS on
 - **AI:** Anthropic API — Sonnet for judgment, Haiku for extraction/classification; agentic execution

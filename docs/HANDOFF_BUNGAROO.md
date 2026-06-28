@@ -2,7 +2,8 @@
 
 **Audience:** Offshore dev team taking Backstop from architecture → production  
 **Owners (US):** @hchybli, @ameerabouhouli — product, dental domain, final review  
-**Status:** Pre-build docs complete — start WS-00
+**Status:** WS-01–05 complete — start WS-06 / WS-07 / WS-08  
+**Strategy:** [STRATEGY.md](./STRATEGY.md) · [COMPETITIVE_BRIEF.md](./COMPETITIVE_BRIEF.md)
 
 ---
 
@@ -12,6 +13,8 @@
 |---|----------|------|---------|
 | 0 | [BUILD_READINESS.md](./BUILD_READINESS.md) | 5 min | **Can we start?** Checklist + build order |
 | 1 | [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) | 15 min | Vision, guardrails, dental domain |
+| 1b | [STRATEGY.md](./STRATEGY.md) | 10 min | North star, wedge, moat, kill criteria |
+| 1c | [COMPETITIVE_BRIEF.md](./COMPETITIVE_BRIEF.md) | 10 min | Archy / Curve (quarterly) |
 | 2 | [architecture/ARCHITECTURE.md](./architecture/ARCHITECTURE.md) | 30 min | Six layers, principles, stack |
 | 3 | [architecture/PHASE_1_SLICE.md](./architecture/PHASE_1_SLICE.md) | 15 min | **What to build now** — definition of done |
 | 4 | [architecture/WORKSTREAMS.md](./architecture/WORKSTREAMS.md) | 20 min | Epics, owners, acceptance criteria |
@@ -28,13 +31,14 @@
 
 ## Current repo state vs target
 
-| | **Now (legacy)** | **Target (Phase 1)** |
-|---|------------------|----------------------|
-| **App** | Next.js 14 monolith in `src/` | Turborepo: `apps/operator` + `apps/owner` (Vite React SPA) |
-| **State** | In-memory demo store | Append-only `events` + read-model projectors |
-| **Scrub** | Rule engine in `src/lib/rules/` | `packages/agents` — rules first, Sonnet for ambiguous only |
-| **DB** | `supabase/migrations/001_*` (CRUD-style) | `002_event_sourced_schema.sql` + RLS |
-| **Deploy** | `npm run dev` locally | Supabase + AWS (see architecture doc) |
+| | **Now (Phase 1 in progress)** | **Target (Phase 1 complete)** |
+|---|------------------------------|------------------------------|
+| **App** | Vite React `apps/operator` + `apps/owner` | Same + `@backstop/ui` polish |
+| **State** | Append-only `events` + projectors (Supabase) | + `@backstop/intelligence` moat |
+| **Scrub** | `@backstop/agents` rules engine | + eligibility agent |
+| **DB** | Migrations 002–003 + RLS + idempotent seed | Stable |
+| **API** | 5 Supabase Edge Functions | Same |
+| **Monorepo** | npm workspaces | Turborepo + pnpm (WS-00) |
 
 **Do not extend the Next.js app for new features.** Port logic into packages, then retire `src/`.
 
