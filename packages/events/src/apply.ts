@@ -18,8 +18,6 @@ async function clearReadModels(db: BackstopServiceClient): Promise<void> {
     if (table === "claim_lines_current") {
       const { error } = await db.from(table).delete().gte("line_index", 0);
       if (error) throw new Error(`clear ${table}: ${error.message}`);
-    } else if (table === "events") {
-      continue;
     } else {
       const { error } = await db.from(table).delete().gte("id", "00000000-0000-0000-0000-000000000000");
       if (error) throw new Error(`clear ${table}: ${error.message}`);

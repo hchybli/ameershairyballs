@@ -157,7 +157,7 @@ export function projectEvent(state: ProjectedState, event: StoredEvent): Project
       resolveFlag(state, event, "approved", null);
       break;
     case BillingEventType.FlagOverridden:
-      resolveFlag(state, event, "overridden", (event.payload as FlagOverriddenPayload).reason);
+      resolveFlag(state, event, "overridden", (event.payload as unknown as FlagOverriddenPayload).reason);
       break;
     default:
       break;

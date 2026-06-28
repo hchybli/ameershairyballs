@@ -1,18 +1,26 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@backstop/auth";
+import { createBrowserClient } from "@backstop/db";
+import { fetchWorkQueue } from "@backstop/handlers/browser";
+import type { QueueRow } from "@backstop/core";
 import { Layout, SeverityBadge } from "../components/ui";
-import type { QueueRow } from "../types";
 
 export function WorkQueuePage() {
+  const { session } = useAuth();
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async () => {
+    if (!session) return;
+    const supabase = createBrowserClient();
+    const data = await fetchWorkQueue(supabase);
+    setRows(data);
+  }, [session]);
+
   useEffect(() => {
-    fetch("/api/queue")
-      .then((r) => r.json())
-      .then((data) => setRows(data.rows ?? []))
-      .finally(() => setLoading(false));
-  }, []);
+    load().finally(() => setLoading(false));
+  }, [load]);
 
   return (
     <Layout>

@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev:api & npm run dev:operator & npm run dev:owner",
+    "dev": "npm run dev:operator & npm run dev:owner",
     "dev:api": "npm run dev -w @backstop/api",
     "dev:operator": "npm run dev -w @backstop/operator",
     "dev:owner": "npm run dev -w @backstop/owner",
@@ -19,6 +19,7 @@
     "test": "tsx --test packages/integrations/src/adapters/csv-dentrix.test.ts packages/integrations/src/adapters/csv-835.test.ts packages/integrations/src/adapters/csv-parity.test.ts packages/agents/src/scrub/engine.test.ts packages/agents/src/scrub/flag-parity.test.ts packages/events/src/projectors.test.ts",
     "test:seed": "tsx --env-file=.env --test scripts/seed-rls.test.ts",
     "test:events": "tsx --env-file=.env --test scripts/events-replay.test.ts",
+    "test:handlers": "tsx --env-file=.env --test scripts/handlers.test.ts",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },
   "dependencies": {

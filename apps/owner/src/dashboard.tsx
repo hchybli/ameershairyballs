@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@backstop/auth";
+import { callEdgeFunction } from "@backstop/api-client";
 
 interface KpiResponse {
   metric: string;
@@ -17,23 +19,30 @@ interface KpiResponse {
 }
 
 export function DashboardPage() {
+  const { supabaseSession } = useAuth();
   const [kpi, setKpi] = useState<KpiResponse | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  function loadKpi() {
-    fetch("/api/analytics-kpi")
-      .then((r) => r.json())
-      .then(setKpi)
-      .finally(() => setLoading(false));
+  async function loadKpi() {
+    const token = supabaseSession?.access_token;
+    if (!token) return;
+
+    const res = await callEdgeFunction(token, "analytics-kpi");
+    if (res.ok) {
+      setKpi(await res.json());
+    }
   }
 
   useEffect(() => {
-    loadKpi();
-  }, []);
+    loadKpi().finally(() => setLoading(false));
+  }, [supabaseSession?.access_token]);
 
   async function uploadOutcomes(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const token = supabaseSession?.access_token;
+    if (!token) return;
+
     const form = e.currentTarget;
     const fileInput = form.elements.namedItem("file") as HTMLInputElement;
     const file = fileInput.files?.[0];
@@ -41,10 +50,10 @@ export function DashboardPage() {
 
     const body = new FormData();
     body.append("file", file);
-    const res = await fetch("/api/ingest-outcomes", { method: "POST", body });
+    const res = await callEdgeFunction(token, "ingest-outcomes", { method: "POST", body });
     const data = await res.json();
     setMessage(data.message ?? data.error);
-    loadKpi();
+    await loadKpi();
     fileInput.value = "";
   }
 

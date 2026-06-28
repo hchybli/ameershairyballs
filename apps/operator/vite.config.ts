@@ -9,12 +9,12 @@ export default defineConfig({
     alias: {
       "@backstop/db": path.resolve(__dirname, "../../packages/db/src/index.ts"),
       "@backstop/auth": path.resolve(__dirname, "../../packages/auth/src/index.ts"),
+      "@backstop/handlers/browser": path.resolve(__dirname, "../../packages/handlers/src/browser.ts"),
+      "@backstop/api-client": path.resolve(__dirname, "../../packages/api-client/src/index.ts"),
+      "@backstop/core": path.resolve(__dirname, "../../packages/core/src/index.ts"),
     },
   },
   server: {
     port: 5173,
-    proxy: {
-      "/api": "http://localhost:3001",
-    },
   },
 });

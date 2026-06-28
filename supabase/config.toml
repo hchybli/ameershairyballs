@@ -1,0 +1,6 @@
+# Supabase local config (Edge Functions + migrations)
+
+project_id = "ndgembdlqevybokxikkd"
+
+[functions]
+verify_jwt = false

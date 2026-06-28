@@ -1,25 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@backstop/auth";
+import { callEdgeFunction } from "@backstop/api-client";
+import { createBrowserClient } from "@backstop/db";
+import { fetchClaimDetail } from "@backstop/handlers/browser";
+import type { StoredClaim } from "@backstop/core";
 import { FlagCard } from "../components/flag-card";
-import { Layout, SeverityBadge } from "../components/ui";
-import type { StoredClaim } from "../types";
+import { Layout } from "../components/ui";
 
 export function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { supabaseSession } = useAuth();
   const [claim, setClaim] = useState<StoredClaim | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const load = useCallback(() => {
+  const load = useCallback(async () => {
     if (!id) return;
-    fetch(`/api/claims/${id}`)
-      .then((r) => r.json())
-      .then((data) => setClaim(data.claim ?? null))
-      .finally(() => setLoading(false));
+    const supabase = createBrowserClient();
+    const data = await fetchClaimDetail(supabase, id);
+    setClaim(data);
   }, [id]);
 
   useEffect(() => {
-    load();
+    load().finally(() => setLoading(false));
   }, [load]);
 
   const openFlags = useMemo(
@@ -33,17 +37,24 @@ export function ClaimDetailPage() {
   }, [openFlags]);
 
   async function gate(flagId: string, action: "approve" | "override", reason?: string) {
-    const res = await fetch("/api/gate-action", {
+    const token = supabaseSession?.access_token;
+    if (!token) {
+      alert("Not signed in.");
+      return;
+    }
+
+    const res = await callEdgeFunction(token, "gate-action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ externalClaimId: id, flagId, action, reason }),
+      body: JSON.stringify({ flag_id: flagId, action, reason }),
     });
+
     if (!res.ok) {
       const err = await res.json();
       alert(err.error ?? "Gate action failed");
       return;
     }
-    load();
+    await load();
   }
 
   if (loading) {

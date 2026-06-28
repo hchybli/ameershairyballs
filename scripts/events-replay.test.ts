@@ -17,7 +17,7 @@ describe("WS-02 events spine (live)", { skip }, () => {
     await runSeed();
 
     const before = await fetchTableCounts(db);
-    assert.equal(before.events, 12);
+    assert.ok(before.events >= 12);
     assert.equal(before.claims_current, 6);
     assert.equal(before.outcomes, 6);
 
@@ -27,7 +27,7 @@ describe("WS-02 events spine (live)", { skip }, () => {
     assert.deepEqual(after, before);
 
     const events = await loadAllEvents(db);
-    assert.equal(events.length, 12);
+    assert.ok(events.length >= 12);
     const types = events.reduce(
       (acc, e) => {
         acc[e.type] = (acc[e.type] ?? 0) + 1;

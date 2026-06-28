@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@backstop/api-client": "*",
     "@backstop/auth": "*",
     "@backstop/db": "*",
     "react": "^18.3.1",
