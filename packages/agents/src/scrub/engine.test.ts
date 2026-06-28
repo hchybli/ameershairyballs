@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseClaimsCsv } from "@backstop/integrations";
-import { scrubClaims } from "./engine.js";
+import { scrubClaims } from "./engine";
 
 describe("scrubClaims (Phase 1a)", () => {
   it("flags audit-risk and missing attachments on sample claims", () => {

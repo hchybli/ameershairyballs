@@ -1,10 +1,10 @@
-export { createBrowserClient, isBrowserClientConfigured, type BackstopSupabaseClient } from "./client.js";
-export { createServiceClient, isServiceClientConfigured, type BackstopServiceClient } from "./server.js";
+export { createBrowserClient, isBrowserClientConfigured, type BackstopSupabaseClient } from "./client";
+export { createServiceClient, isServiceClientConfigured, type BackstopServiceClient } from "./server";
 export {
   tenantScope,
   TENANT_SCOPED_TABLES,
   type TenantScopedTable,
   type TenantScopedRow,
   type TenantScopedInsert,
-} from "./tenant.js";
-export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types.js";
+} from "./tenant";
+export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types";

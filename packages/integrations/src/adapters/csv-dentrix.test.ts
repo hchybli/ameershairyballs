@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseClaimsCsv } from "./csv-dentrix.js";
+import { parseClaimsCsv } from "./csv-dentrix";
 
 describe("parseClaimsCsv", () => {
   it("parses the synthetic sample CSV into grouped claims", () => {

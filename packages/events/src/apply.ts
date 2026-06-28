@@ -1,8 +1,8 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import type { StoredEvent } from "./types.js";
-import { projectEvent } from "./projectors/index.js";
-import type { ProjectedState } from "./projectors/state.js";
-import { toStoredEvent } from "./projectors/state.js";
+import type { StoredEvent } from "./types";
+import { projectEvent } from "./projectors/index";
+import type { ProjectedState } from "./projectors/state";
+import { toStoredEvent } from "./projectors/state";
 
 const READ_MODEL_TABLES = [
   "claim_lines_current",
@@ -106,7 +106,7 @@ export async function applySingleEventProjection(
 
   if (error) throw new Error(`load events for projection: ${error.message}`);
 
-  const { foldEvents } = await import("./projectors/index.js");
+  const { foldEvents } = await import("./projectors/index");
   const state = foldEvents(
     (allEvents ?? []).map((row) =>
       toStoredEvent({ ...row, payload: row.payload as Record<string, unknown> }),

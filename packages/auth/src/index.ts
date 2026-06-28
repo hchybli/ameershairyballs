@@ -2,15 +2,15 @@ export {
   AuthProvider,
   useAuth,
   useTenant,
-} from "./context.js";
+} from "./context";
 export {
   RequireAuth,
   RequireRole,
-} from "./guards.js";
+} from "./guards";
 export {
   LoginPage,
   UnauthorizedPage,
-} from "./login.js";
+} from "./login";
 export {
   isBackstopRole,
   parseAppMetadata,
@@ -19,4 +19,4 @@ export {
   OWNER_APP_ROLES,
   type BackstopRole,
   type BackstopSession,
-} from "./session.js";
+} from "./session";

@@ -1,7 +1,7 @@
 import { computeCleanClaimRate } from "@backstop/analytics";
 import type { FlagType, StoredClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
-import type { HandlerAuth } from "./types.js";
+import type { HandlerAuth } from "./types";
 
 export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: HandlerAuth) {
   const { data: claims, error: claimsError } = await db

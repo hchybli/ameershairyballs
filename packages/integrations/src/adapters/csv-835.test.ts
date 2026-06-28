@@ -2,7 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseOutcomesCsv } from "./csv-835.js";
+import { parseOutcomesCsv } from "./csv-835";
 
 describe("parseOutcomesCsv", () => {
   it("parses the synthetic sample outcomes CSV", () => {

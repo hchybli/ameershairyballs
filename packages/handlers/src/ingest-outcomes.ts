@@ -1,7 +1,7 @@
 import type { BackstopServiceClient } from "@backstop/db";
 import { BillingEventType, emit, outcomeReceivedDedupeKey } from "@backstop/events";
 import { parseOutcomesCsv } from "@backstop/integrations";
-import type { HandlerAuth } from "./types.js";
+import type { HandlerAuth } from "./types";
 
 export interface IngestOutcomesResult {
   outcomes_recorded: number;

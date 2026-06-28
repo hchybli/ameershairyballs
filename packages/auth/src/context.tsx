@@ -8,7 +8,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { createBrowserClient } from "@backstop/db";
-import { parseAppMetadata, type BackstopSession } from "./session.js";
+import { parseAppMetadata, type BackstopSession } from "./session";
 
 interface AuthContextValue {
   session: BackstopSession | null;

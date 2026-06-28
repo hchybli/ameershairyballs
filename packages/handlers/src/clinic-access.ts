@@ -1,5 +1,5 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import type { HandlerAuth } from "./types.js";
+import type { HandlerAuth } from "./types";
 
 export async function assertClinicAccess(
   db: BackstopServiceClient,

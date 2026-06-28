@@ -7,8 +7,8 @@ import {
   flagRaisedDedupeKey,
 } from "@backstop/events";
 import { parseClaimsCsv } from "@backstop/integrations";
-import { assertClinicAccess } from "./clinic-access.js";
-import type { HandlerAuth } from "./types.js";
+import { assertClinicAccess } from "./clinic-access";
+import type { HandlerAuth } from "./types";
 
 export interface IngestClaimsInput {
   csvText: string;

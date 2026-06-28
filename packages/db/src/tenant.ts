@@ -1,5 +1,5 @@
-import type { BackstopSupabaseClient } from "./client.js";
-import type { Database } from "./database.types.js";
+import type { BackstopSupabaseClient } from "./client";
+import type { Database } from "./database.types";
 
 /** Tables with a direct tenant_id column — safe for tenantScope(). */
 export const TENANT_SCOPED_TABLES = [

@@ -1,5 +1,5 @@
-export { emit, replay, deriveState, loadAllEvents, foldEvents, projectEvent } from "./emit.js";
-export { BillingEventType } from "./types.js";
+export { emit, replay, deriveState, loadAllEvents, foldEvents, projectEvent } from "./emit";
+export { BillingEventType } from "./types";
 export type {
   BillingEventTypeName,
   ClaimIngestedPayload,
@@ -10,11 +10,11 @@ export type {
   StoredEvent,
   EmitInput,
   EmitResult,
-} from "./types.js";
+} from "./types";
 export {
   deterministicEventId,
   claimIngestedDedupeKey,
   outcomeReceivedDedupeKey,
   flagRaisedDedupeKey,
-} from "./idempotency.js";
-export { emptyProjectedState, claimKey, type ProjectedState } from "./projectors/state.js";
+} from "./idempotency";
+export { emptyProjectedState, claimKey, type ProjectedState } from "./projectors/state";

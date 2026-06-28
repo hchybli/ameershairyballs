@@ -4,7 +4,7 @@ import {
   BillingEventType,
   foldEvents,
   claimKey,
-} from "./index.ts";
+} from "./index";
 
 describe("projectors (pure)", () => {
   test("claim.ingested + outcome.received fold into expected read models", () => {

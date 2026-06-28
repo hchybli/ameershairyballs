@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./context.js";
+import { useAuth } from "./context";
 
 export function LoginPage({ title = "Sign in" }: { title?: string }) {
   const { session, signIn } = useAuth();

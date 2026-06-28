@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./context.js";
-import { roleAllowed, type BackstopRole } from "./session.js";
+import { useAuth } from "./context";
+import { roleAllowed, type BackstopRole } from "./session";
 
 interface RequireRoleProps {
   allowed: readonly BackstopRole[];

@@ -1,6 +1,26 @@
-# Supabase local config (Edge Functions + migrations)
+# Supabase project config — https://supabase.com/docs/guides/local-development/cli/config
+# Linked remote project: ndgembdlqevybokxikkd
 
 project_id = "ndgembdlqevybokxikkd"
 
-[functions]
-verify_jwt = false
+# deno.json: @backstop/* import map + sloppy-imports for extensionless relative imports in packages/.
+# Each function also has its own deno.json with sloppy-imports (read at deploy time).
+[functions.ingest-claims]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.run-scrub]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.gate-action]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.ingest-outcomes]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.analytics-kpi]
+verify_jwt = true
+import_map = "./functions/deno.json"
