@@ -16,10 +16,6 @@ export interface EligibilitySnapshotRow {
   alerts: string[];
 }
 
-/**
- * Reads projected eligibility snapshots (table + projector wired in WS-AGENTS-01).
- * Returns null until eligibility.checked events populate the read model.
- */
 export const queryEligibilityTool: ToolDefinition<
   QueryEligibilityArgs,
   EligibilitySnapshotRow | null
@@ -34,8 +30,41 @@ export const queryEligibilityTool: ToolDefinition<
     },
     required: ["patient_ref"],
   },
-  async execute(_ctx, args) {
-    void args;
-    return null;
+  async execute(ctx, args) {
+    let query = ctx.db
+      .from("eligibility_current")
+      .select(
+        "patient_ref, payer_name, active, checked_at, annual_max_remaining, deductible_remaining, breakdown, alerts",
+      )
+      .eq("tenant_id", ctx.tenantId)
+      .eq("patient_ref", args.patient_ref)
+      .order("checked_at", { ascending: false })
+      .limit(1);
+
+    if (args.payer_name) {
+      query = query.eq("payer_name", args.payer_name);
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error) {
+      throw new Error(`query_eligibility failed: ${error.message}`);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      patient_ref: data.patient_ref,
+      payer_name: data.payer_name,
+      active: data.active,
+      checked_at: data.checked_at,
+      annual_max_remaining:
+        data.annual_max_remaining === null ? null : Number(data.annual_max_remaining),
+      deductible_remaining:
+        data.deductible_remaining === null ? null : Number(data.deductible_remaining),
+      breakdown: (data.breakdown as Record<string, unknown>) ?? {},
+      alerts: Array.isArray(data.alerts) ? (data.alerts as string[]) : [],
+    };
   },
 };

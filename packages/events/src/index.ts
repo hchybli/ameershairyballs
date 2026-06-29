@@ -3,6 +3,8 @@ export { BillingEventType } from "./types.ts";
 export type {
   BillingEventTypeName,
   ClaimIngestedPayload,
+  EligibilityCheckedPayload,
+  PredictionScoredPayload,
   OutcomeReceivedPayload,
   FlagRaisedPayload,
   FlagApprovedPayload,
@@ -15,6 +17,8 @@ export {
   deterministicEventId,
   claimIngestedDedupeKey,
   outcomeReceivedDedupeKey,
+  eligibilityCheckedDedupeKey,
+  predictionScoredDedupeKey,
   flagRaisedDedupeKey,
 } from "./idempotency.ts";
 export { emptyProjectedState, claimKey, type ProjectedState } from "./projectors/state.ts";

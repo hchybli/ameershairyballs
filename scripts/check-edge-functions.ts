@@ -15,6 +15,8 @@ const FUNCTIONS = [
   "ingest-claims",
   "run-scrub",
   "gate-action",
+  "check-eligibility",
+  "predict-denial",
   "ingest-outcomes",
   "analytics-kpi",
 ] as const;

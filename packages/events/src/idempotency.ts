@@ -29,6 +29,19 @@ export function deterministicClaimId(tenantId: string, externalClaimId: string):
   return deterministicEventId(`${tenantId}:claim:${externalClaimId}`);
 }
 
+export function eligibilityCheckedDedupeKey(
+  tenantId: string,
+  clinicId: string,
+  patientRef: string,
+  payerName: string,
+): string {
+  return `${tenantId}:eligibility.checked:${clinicId}:${patientRef}:${payerName}`;
+}
+
+export function predictionScoredDedupeKey(tenantId: string, externalClaimId: string): string {
+  return `${tenantId}:prediction.scored:${externalClaimId}`;
+}
+
 export function flagRaisedDedupeKey(
   tenantId: string,
   externalClaimId: string,

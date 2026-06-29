@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth, SignOutButton } from "@backstop/auth";
 import { callEdgeFunctionAuthed, formatEdgeError } from "@backstop/api-client";
 import { fetchClaimDetail } from "@backstop/handlers/browser";
 import type { StoredClaim } from "@backstop/core";
-import { AppShell, Card, FlagCard } from "@backstop/ui";
+import { AppShell, Card, DenialRiskPanel, EligibilityPanel, FlagCard } from "@backstop/ui";
 
 export function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +12,26 @@ export function ClaimDetailPage() {
   const { supabase } = useAuth();
   const [claim, setClaim] = useState<StoredClaim | null>(null);
   const [loading, setLoading] = useState(true);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [eligibility, setEligibility] = useState<{
+    active: boolean;
+    annualMaxRemaining: number;
+    deductibleRemaining: number;
+    coverageSummary: string | null;
+    alerts: Array<{ code: string; severity: "critical" | "high" | "medium" | "low"; message: string }>;
+    checkedAt: string;
+  } | null>(null);
+  const [denialRisk, setDenialRisk] = useState<{
+    claimRiskScore: number;
+    lines: Array<{
+      lineIndex: number;
+      cdtCode: string;
+      riskScore: number;
+      denialRate: number;
+      reasons: string[];
+      recommendedFix: string;
+    }>;
+  } | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -22,6 +42,80 @@ export function ClaimDetailPage() {
   useEffect(() => {
     load().finally(() => setLoading(false));
   }, [load]);
+
+  const runAgents = useCallback(async () => {
+    if (!claim) return;
+    setAgentLoading(true);
+    try {
+      const procedureCodes = claim.lines.map((l) => l.cdtCode);
+      const [eligRes, predRes] = await Promise.all([
+        callEdgeFunctionAuthed(supabase, "check-eligibility", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patient_ref: claim.patientRef,
+            payer_name: claim.payerName,
+            external_claim_id: claim.externalClaimId,
+            procedure_codes: procedureCodes,
+          }),
+        }),
+        callEdgeFunctionAuthed(supabase, "predict-denial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            external_claim_id: claim.externalClaimId,
+            payer_name: claim.payerName,
+            lines: claim.lines.map((line, lineIndex) => ({
+              line_index: lineIndex,
+              cdt_code: line.cdtCode,
+              fee_billed: line.feeBilled,
+            })),
+          }),
+        }),
+      ]);
+
+      if (eligRes.ok) {
+        const data = await eligRes.json();
+        setEligibility({
+          active: Boolean(data.active),
+          annualMaxRemaining: Number(data.annual_max_remaining ?? 0),
+          deductibleRemaining: Number(data.deductible_remaining ?? 0),
+          coverageSummary: data.coverage_summary ?? null,
+          alerts: Array.isArray(data.alerts) ? data.alerts : [],
+          checkedAt: data.checked_at ?? new Date().toISOString(),
+        });
+      }
+
+      if (predRes.ok) {
+        const data = await predRes.json();
+        setDenialRisk({
+          claimRiskScore: Number(data.claim_risk_score ?? 0),
+          lines: Array.isArray(data.lines)
+            ? data.lines.map((line: Record<string, unknown>) => ({
+                lineIndex: Number(line.line_index ?? 0),
+                cdtCode: String(line.cdt_code ?? ""),
+                riskScore: Number(line.risk_score ?? 0),
+                denialRate: Number(line.denial_rate ?? 0),
+                reasons: Array.isArray(line.reasons) ? (line.reasons as string[]) : [],
+                recommendedFix: String(line.recommended_fix ?? ""),
+              }))
+            : [],
+        });
+      }
+
+      await load();
+    } finally {
+      setAgentLoading(false);
+    }
+  }, [claim, load, supabase]);
+
+  const agentsRan = useRef(false);
+
+  useEffect(() => {
+    if (!claim || agentsRan.current) return;
+    agentsRan.current = true;
+    void runAgents();
+  }, [claim?.externalClaimId, runAgents]);
 
   const openFlags = useMemo(
     () => claim?.scrub.flags.filter((f) => f.status === "open") ?? [],
@@ -116,6 +210,27 @@ export function ClaimDetailPage() {
           <p className="mt-1 font-medium text-[color:var(--bs-navy)]">{primary.reason}</p>
         </Card>
       )}
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <EligibilityPanel
+          patientRef={claim.patientRef}
+          payerName={claim.payerName}
+          active={eligibility?.active ?? true}
+          annualMaxRemaining={eligibility?.annualMaxRemaining ?? null}
+          deductibleRemaining={eligibility?.deductibleRemaining ?? null}
+          coverageSummary={eligibility?.coverageSummary ?? undefined}
+          alerts={eligibility?.alerts ?? []}
+          loading={agentLoading && !eligibility}
+          checkedAt={eligibility?.checkedAt}
+          onRecheck={runAgents}
+        />
+        <DenialRiskPanel
+          claimRiskScore={denialRisk?.claimRiskScore ?? 0}
+          lines={denialRisk?.lines ?? []}
+          loading={agentLoading && !denialRisk}
+          onRescore={runAgents}
+        />
+      </div>
 
       {claim.autoFixes.length > 0 && (
         <Card className="mt-4 border-[color:var(--bs-success)] bg-green-50/60 p-4 text-sm">

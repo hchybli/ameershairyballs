@@ -2,15 +2,18 @@ import { BillingEventType } from "../types.ts";
 import { deterministicClaimId, deterministicEventId } from "../idempotency.ts";
 import type {
   ClaimIngestedPayload,
+  EligibilityCheckedPayload,
   FlagApprovedPayload,
   FlagOverriddenPayload,
   FlagRaisedPayload,
   OutcomeReceivedPayload,
+  PredictionScoredPayload,
   StoredEvent,
 } from "../types.ts";
 import {
   claimKey,
   emptyProjectedState,
+  eligibilityKey,
   payerIntelKey,
   type ProjectedState,
 } from "./state.ts";
@@ -81,6 +84,7 @@ function projectOutcomeReceived(state: ProjectedState, event: StoredEvent): void
       downcoded_count: 0,
       avg_paid_amount: null,
       common_remark_codes: [],
+      prediction_count: 0,
     };
 
     existing.sample_size += 1;
@@ -105,6 +109,54 @@ function projectOutcomeReceived(state: ProjectedState, event: StoredEvent): void
       existing.common_remark_codes.push(p.remark_code);
     }
 
+    state.payerIntelligence.set(intelKey, existing);
+  }
+}
+
+function projectEligibilityChecked(state: ProjectedState, event: StoredEvent): void {
+  const p = asPayload<EligibilityCheckedPayload>(event.payload);
+  const key = eligibilityKey(p.tenant_id, p.clinic_id, p.patient_ref, p.payer_name);
+  const id = deterministicEventId(`${event.id}:eligibility`);
+
+  state.eligibility.set(key, {
+    id,
+    tenant_id: p.tenant_id,
+    clinic_id: p.clinic_id,
+    patient_ref: p.patient_ref,
+    payer_name: p.payer_name,
+    active: p.active,
+    checked_at: p.checked_at,
+    annual_max_remaining: p.annual_max_remaining,
+    deductible_remaining: p.deductible_remaining,
+    breakdown: {
+      coverage_by_category: p.coverage_by_category,
+      frequency_limits: p.frequency_limits,
+      network_status: p.network_status,
+      annual_max: p.annual_max,
+      deductible: p.deductible,
+    },
+    alerts: p.alerts,
+    source_event_id: event.id,
+  });
+}
+
+function projectPredictionScored(state: ProjectedState, event: StoredEvent): void {
+  const p = asPayload<PredictionScoredPayload>(event.payload);
+  for (const line of p.lines) {
+    const intelKey = payerIntelKey(p.tenant_id, p.payer_name, line.cdt_code);
+    const existing = state.payerIntelligence.get(intelKey) ?? {
+      tenant_id: p.tenant_id,
+      payer_name: p.payer_name,
+      cdt_code: line.cdt_code,
+      sample_size: 0,
+      paid_count: 0,
+      denied_count: 0,
+      downcoded_count: 0,
+      avg_paid_amount: null,
+      common_remark_codes: [],
+      prediction_count: 0,
+    };
+    existing.prediction_count += 1;
     state.payerIntelligence.set(intelKey, existing);
   }
 }
@@ -162,6 +214,12 @@ export function projectEvent(state: ProjectedState, event: StoredEvent): Project
       break;
     case BillingEventType.OutcomeReceived:
       projectOutcomeReceived(state, event);
+      break;
+    case BillingEventType.EligibilityChecked:
+      projectEligibilityChecked(state, event);
+      break;
+    case BillingEventType.PredictionScored:
+      projectPredictionScored(state, event);
       break;
     case BillingEventType.FlagRaised:
       projectFlagRaised(state, event);

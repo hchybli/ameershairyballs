@@ -10,6 +10,7 @@ const READ_MODEL_TABLES = [
   "flags_resolved",
   "outcomes",
   "payer_intelligence",
+  "eligibility_current",
   "claims_current",
 ] as const;
 
@@ -17,6 +18,9 @@ async function clearReadModels(db: BackstopServiceClient): Promise<void> {
   for (const table of READ_MODEL_TABLES) {
     if (table === "claim_lines_current") {
       const { error } = await db.from(table).delete().gte("line_index", 0);
+      if (error) throw new Error(`clear ${table}: ${error.message}`);
+    } else if (table === "eligibility_current") {
+      const { error } = await db.from(table).delete().gte("patient_ref", "");
       if (error) throw new Error(`clear ${table}: ${error.message}`);
     } else {
       const { error } = await db.from(table).delete().gte("id", "00000000-0000-0000-0000-000000000000");
@@ -78,11 +82,34 @@ async function writeProjectedState(db: BackstopServiceClient, state: ProjectedSt
         downcoded_count: intel.downcoded_count,
         avg_paid_amount: intel.avg_paid_amount,
         common_remark_codes: intel.common_remark_codes,
+        prediction_count: intel.prediction_count,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "tenant_id,payer_name,cdt_code" },
     );
     if (error) throw new Error(`write payer_intelligence: ${error.message}`);
+  }
+
+  for (const row of state.eligibility.values()) {
+    const { error } = await db.from("eligibility_current").upsert(
+      {
+        id: row.id,
+        tenant_id: row.tenant_id,
+        clinic_id: row.clinic_id,
+        patient_ref: row.patient_ref,
+        payer_name: row.payer_name,
+        active: row.active,
+        checked_at: row.checked_at,
+        annual_max_remaining: row.annual_max_remaining,
+        deductible_remaining: row.deductible_remaining,
+        breakdown: JSON.parse(JSON.stringify(row.breakdown)),
+        alerts: row.alerts,
+        source_event_id: row.source_event_id,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "tenant_id,clinic_id,patient_ref,payer_name" },
+    );
+    if (error) throw new Error(`write eligibility_current: ${error.message}`);
   }
 }
 

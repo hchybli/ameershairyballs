@@ -1,0 +1,69 @@
+{
+  "SYN-PAT-001|Delta Dental": {
+    "active": true,
+    "network_status": "in_network",
+    "annual_max": 1500,
+    "annual_max_remaining": 1120,
+    "deductible": 50,
+    "deductible_remaining": 0,
+    "coverage_by_category": {
+      "preventive": 100,
+      "basic": 80,
+      "major": 50
+    },
+    "frequency_limits": [
+      { "procedure": "D1110", "description": "Prophylaxis", "times_per_year": 2, "used": 1 }
+    ],
+    "waiting_periods": [],
+    "cob": null
+  },
+  "SYN-PAT-002|MetLife Dental": {
+    "active": true,
+    "network_status": "in_network",
+    "annual_max": 2000,
+    "annual_max_remaining": 1680,
+    "deductible": 75,
+    "deductible_remaining": 25,
+    "coverage_by_category": {
+      "preventive": 100,
+      "basic": 80,
+      "periodontics": 80
+    },
+    "frequency_limits": [
+      { "procedure": "D4341", "description": "SRP", "times_per_year": 4, "used": 1 }
+    ],
+    "waiting_periods": [],
+    "cob": null
+  },
+  "SYN-PAT-003|Cigna Dental": {
+    "active": true,
+    "network_status": "in_network",
+    "annual_max": 1200,
+    "annual_max_remaining": 85,
+    "deductible": 50,
+    "deductible_remaining": 0,
+    "coverage_by_category": {
+      "preventive": 100,
+      "basic": 80,
+      "major": 50
+    },
+    "frequency_limits": [
+      { "procedure": "D1110", "description": "Prophylaxis", "times_per_year": 2, "used": 2 },
+      { "procedure": "D2950", "description": "Core buildup", "times_per_year": 1, "used": 0 }
+    ],
+    "waiting_periods": [],
+    "cob": { "has_secondary": false }
+  },
+  "SYN-PAT-003|Cigna Dental|lapsed": {
+    "active": false,
+    "network_status": "out_of_network",
+    "annual_max": 0,
+    "annual_max_remaining": 0,
+    "deductible": 0,
+    "deductible_remaining": 0,
+    "coverage_by_category": {},
+    "frequency_limits": [],
+    "waiting_periods": [],
+    "cob": null
+  }
+}

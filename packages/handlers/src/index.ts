@@ -5,4 +5,6 @@ export { handleGateAction, type GateActionInput } from "./gate-action.ts";
 export { handleIngestOutcomes, type IngestOutcomesResult } from "./ingest-outcomes.ts";
 export { handleAnalyticsKpi } from "./analytics-kpi.ts";
 export { handleRunScrub, type RunScrubInput } from "./run-scrub.ts";
+export { handleCheckEligibility, type CheckEligibilityInput } from "./check-eligibility.ts";
+export { handlePredictDenial, type PredictDenialInput } from "./predict-denial.ts";
 export { fetchWorkQueue, fetchClaimDetail } from "./read-models.ts";

@@ -68,6 +68,22 @@ export interface ProjectedPayerIntel {
   downcoded_count: number;
   avg_paid_amount: number | null;
   common_remark_codes: string[];
+  prediction_count: number;
+}
+
+export interface ProjectedEligibility {
+  id: string;
+  tenant_id: string;
+  clinic_id: string;
+  patient_ref: string;
+  payer_name: string;
+  active: boolean;
+  checked_at: string;
+  annual_max_remaining: number | null;
+  deductible_remaining: number | null;
+  breakdown: Record<string, unknown>;
+  alerts: string[];
+  source_event_id: string;
 }
 
 export interface ProjectedState {
@@ -77,6 +93,7 @@ export interface ProjectedState {
   flagsResolved: ProjectedFlagResolved[];
   outcomes: ProjectedOutcome[];
   payerIntelligence: Map<string, ProjectedPayerIntel>;
+  eligibility: Map<string, ProjectedEligibility>;
 }
 
 export function emptyProjectedState(): ProjectedState {
@@ -87,11 +104,21 @@ export function emptyProjectedState(): ProjectedState {
     flagsResolved: [],
     outcomes: [],
     payerIntelligence: new Map(),
+    eligibility: new Map(),
   };
 }
 
 export function claimKey(tenantId: string, externalClaimId: string): string {
   return `${tenantId}:${externalClaimId}`;
+}
+
+export function eligibilityKey(
+  tenantId: string,
+  clinicId: string,
+  patientRef: string,
+  payerName: string,
+): string {
+  return `${tenantId}:${clinicId}:${patientRef}:${payerName}`;
 }
 
 export function payerIntelKey(tenantId: string, payerName: string, cdtCode: string): string {

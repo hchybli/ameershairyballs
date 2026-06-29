@@ -23,3 +23,11 @@ import_map = "./functions/deno.json"
 [functions.analytics-kpi]
 verify_jwt = true
 import_map = "./functions/deno.json"
+
+[functions.check-eligibility]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.predict-denial]
+verify_jwt = true
+import_map = "./functions/deno.json"

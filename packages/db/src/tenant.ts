@@ -10,6 +10,7 @@ export const TENANT_SCOPED_TABLES = [
   "flags_resolved",
   "outcomes",
   "payer_intelligence",
+  "eligibility_current",
 ] as const;
 
 export type TenantScopedTable = (typeof TENANT_SCOPED_TABLES)[number];

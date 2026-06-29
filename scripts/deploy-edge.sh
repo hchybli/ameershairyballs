@@ -6,7 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 PROJECT_REF="ndgembdlqevybokxikkd"
-FUNCTIONS="ingest-claims run-scrub gate-action ingest-outcomes analytics-kpi"
+FUNCTIONS="ingest-claims run-scrub gate-action ingest-outcomes analytics-kpi check-eligibility predict-denial"
 
 echo "→ Running predeploy:edge…"
 npm run predeploy:edge

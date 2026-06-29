@@ -4,4 +4,6 @@ export { Button } from "./components/Button";
 export { Card } from "./components/Card";
 export { FlagCard, type FlagCardProps } from "./components/FlagCard";
 export { MetricTile } from "./components/MetricTile";
+export { EligibilityPanel, type EligibilityPanelProps, type EligibilityAlertView } from "./components/EligibilityPanel";
+export { DenialRiskPanel, type DenialRiskPanelProps, type DenialLineRiskView } from "./components/DenialRiskPanel";
 export { SeverityBadge } from "./components/SeverityBadge";

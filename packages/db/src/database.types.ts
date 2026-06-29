@@ -116,6 +116,76 @@ export type Database = {
           },
         ]
       }
+      eligibility_current: {
+        Row: {
+          active: boolean
+          alerts: string[]
+          annual_max_remaining: number | null
+          breakdown: Json
+          checked_at: string
+          clinic_id: string
+          deductible_remaining: number | null
+          id: string
+          patient_ref: string
+          payer_name: string
+          source_event_id: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          alerts?: string[]
+          annual_max_remaining?: number | null
+          breakdown?: Json
+          checked_at?: string
+          clinic_id: string
+          deductible_remaining?: number | null
+          id?: string
+          patient_ref: string
+          payer_name: string
+          source_event_id?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          alerts?: string[]
+          annual_max_remaining?: number | null
+          breakdown?: Json
+          checked_at?: string
+          clinic_id?: string
+          deductible_remaining?: number | null
+          id?: string
+          patient_ref?: string
+          payer_name?: string
+          source_event_id?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eligibility_current_clinic_id_fkey"
+            columns: ["clinic_id"]
+            isOneToOne: false
+            referencedRelation: "clinics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eligibility_current_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eligibility_current_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinic_members: {
         Row: {
           clinic_id: string
@@ -405,6 +475,7 @@ export type Database = {
           id: string
           paid_count: number
           payer_name: string
+          prediction_count: number
           sample_size: number
           tenant_id: string
           updated_at: string
@@ -418,6 +489,7 @@ export type Database = {
           id?: string
           paid_count?: number
           payer_name: string
+          prediction_count?: number
           sample_size?: number
           tenant_id: string
           updated_at?: string
@@ -431,6 +503,7 @@ export type Database = {
           id?: string
           paid_count?: number
           payer_name?: string
+          prediction_count?: number
           sample_size?: number
           tenant_id?: string
           updated_at?: string

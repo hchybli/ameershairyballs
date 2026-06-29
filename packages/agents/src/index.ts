@@ -9,6 +9,17 @@ export {
   runScrubRulesAgent,
   SCRUB_RULES_AGENT_ID,
 } from "./scrub/scrub-agent.ts";
+export {
+  runEligibilityAgent,
+  ELIGIBILITY_AGENT_ID,
+  type EligibilityRunResult,
+} from "./eligibility/agent.ts";
+export { analyzeEligibility, type EligibilityAlert } from "./eligibility/analyze.ts";
+export {
+  runDenialPredictionAgent,
+  DENIAL_PREDICTION_AGENT_ID,
+} from "./denial-prediction/agent.ts";
+export { scoreDenialRisk, type DenialRiskResult, type DenialLineRisk } from "./denial-prediction/scorer.ts";
 export { AgentRunner } from "./framework/runner.ts";
 export { createAnthropicClient } from "./framework/anthropic.ts";
 export {

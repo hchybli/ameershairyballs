@@ -1,11 +1,13 @@
 /** Phase 1 billing domain events. Reserved: clinical.*, schedule.*, comms.* */
 export const BillingEventType = {
   ClaimIngested: "claim.ingested",
+  EligibilityChecked: "eligibility.checked",
   FlagRaised: "flag.raised",
   FlagApproved: "flag.approved",
   FlagOverridden: "flag.overridden",
   FixApplied: "fix.applied",
   OutcomeReceived: "outcome.received",
+  PredictionScored: "prediction.scored",
 } as const;
 
 export type BillingEventTypeName = (typeof BillingEventType)[keyof typeof BillingEventType];
@@ -44,6 +46,29 @@ export interface OutcomeReceivedPayload {
   dedupe_key?: string;
 }
 
+export interface EligibilityCheckedPayload {
+  event_schema_version: number;
+  tenant_id: string;
+  clinic_id: string;
+  patient_ref: string;
+  payer_name: string;
+  external_claim_id: string | null;
+  active: boolean;
+  annual_max: number;
+  annual_max_remaining: number;
+  deductible: number;
+  deductible_remaining: number;
+  coverage_by_category: Record<string, number>;
+  frequency_limits: Array<Record<string, unknown>>;
+  waiting_periods: Array<Record<string, unknown>>;
+  cob: Record<string, unknown> | null;
+  network_status: string;
+  alerts: string[];
+  source: string;
+  checked_at: string;
+  dedupe_key?: string;
+}
+
 export interface FlagRaisedPayload {
   event_schema_version: number;
   tenant_id: string;
@@ -59,6 +84,26 @@ export interface FlagRaisedPayload {
   suggested_fix: string | null;
   raised_by: string;
   rule_id?: string;
+}
+
+export interface PredictionScoredPayload {
+  event_schema_version: number;
+  tenant_id: string;
+  clinic_id: string;
+  external_claim_id: string;
+  payer_name: string;
+  claim_risk_score: number;
+  lines: Array<{
+    line_index: number;
+    cdt_code: string;
+    risk_score: number;
+    denial_rate: number;
+    sample_size: number;
+    reasons: string[];
+    recommended_fix: string;
+  }>;
+  scored_at: string;
+  dedupe_key?: string;
 }
 
 export interface FlagApprovedPayload {
