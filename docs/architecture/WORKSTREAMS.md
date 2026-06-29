@@ -167,12 +167,12 @@ See [API_CONTRACTS.md](./API_CONTRACTS.md).
 
 ## WS-09 — E2E + legacy retirement
 
-**Status:** not started  
+**Status:** done  
 **Depends on:** WS-06, WS-08
 
 ### Tasks
-- [ ] `scripts/demo-e2e.sh` documents full loop
-- [ ] Mark `src/` deprecated in README (root README done)
+- [x] `scripts/demo-e2e.sh` documents full loop (+ `--auto` headless path)
+- [x] Mark `src/` deprecated (`src/README.md`, root README)
 - [ ] Remove or archive Next.js app after US sign-off
 
 ---

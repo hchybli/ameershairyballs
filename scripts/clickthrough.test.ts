@@ -138,6 +138,45 @@ describe("click-through (live edge + RLS)", { skip: skipIfNoEnv() }, () => {
 
     await client.auth.signOut();
   });
+
+  test("operator: eligibility + denial agents on SYN-CLM-003", async () => {
+    const { session } = await signIn(CREDENTIALS.operator.email, CREDENTIALS.operator.password);
+
+    const eligRes = await callEdge(session.access_token, "check-eligibility", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        patient_ref: "SYN-PAT-003",
+        payer_name: "Cigna Dental",
+        external_claim_id: "SYN-CLM-003",
+        procedure_codes: ["D2950", "D2740"],
+      }),
+    });
+    const elig = await eligRes.json();
+    console.log("  check-eligibility status:", eligRes.status);
+    assert.equal(eligRes.status, 200, elig.error ?? `HTTP ${eligRes.status}`);
+    assert.ok(
+      elig.active === true && Array.isArray(elig.alerts) && elig.alerts.length > 0,
+      JSON.stringify(elig),
+    );
+
+    const predictRes = await callEdge(session.access_token, "predict-denial", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        external_claim_id: "SYN-CLM-003",
+        payer_name: "Cigna Dental",
+        lines: [
+          { line_index: 0, cdt_code: "D2950", fee_billed: 350 },
+          { line_index: 1, cdt_code: "D2740", fee_billed: 1200 },
+        ],
+      }),
+    });
+    const predict = await predictRes.json();
+    console.log("  predict-denial status:", predictRes.status);
+    assert.equal(predictRes.status, 200, predict.error ?? `HTTP ${predictRes.status}`);
+    assert.ok(Array.isArray(predict.lines) && predict.lines.length > 0, JSON.stringify(predict));
+  });
 });
 
 describe("click-through (env missing)", { skip: !skipIfNoEnv() }, () => {

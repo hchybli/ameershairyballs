@@ -14,6 +14,7 @@ Backstop Phase 1 runs on **Supabase** (Postgres + Auth + Edge Functions) with **
 | `npm run verify` | Full self-check (edge imports + deno ×5, build, all tests, **smoke**) — fails on first error |
 | `npm run smoke` | Headless synthetic E2E (handlers + RLS + scorecards; requires `.env`) |
 | `npm run deploy:edge` | Run `predeploy:edge`, then deploy all **7** edge functions to `ndgembdlqevybokxikkd` (requires `supabase login`) |
+| `npm run demo:e2e` | Print Phase 1 E2E playbook; `-- --auto` runs seed + clickthrough |
 | `npm run seed` | Load synthetic tenants + claims (requires `.env`) |
 
 Individual scripts still available: `dev:operator`, `dev:owner`, `check:edge`, `build:apps`, `test`, `test:events`, `test:seed`, `test:handlers`, `fix:edge-imports`.

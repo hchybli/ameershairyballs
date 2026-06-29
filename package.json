@@ -26,6 +26,7 @@
     "verify": "tsx scripts/verify-all.ts",
     "smoke": "tsx --env-file=.env --test scripts/smoke.test.ts",
     "clickthrough": "tsx --env-file=.env --test scripts/clickthrough.test.ts",
+    "demo:e2e": "bash scripts/demo-e2e.sh",
     "deploy:edge": "bash scripts/deploy-edge.sh",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },

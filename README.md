@@ -14,6 +14,7 @@ cp .env.example .env   # fill Supabase URL + keys
 npm run seed
 npm run dev            # operator :5173 + owner :5174
 npm run verify         # full self-check before shipping
+npm run demo:e2e       # Phase 1 E2E playbook (add -- --auto for headless)
 ```
 
 | App | URL | Demo login |
@@ -48,7 +49,7 @@ apps/operator     Work queue + claim gate + agent panels
 apps/owner        KPI command center + drill-down
 packages/*        Domain, events, agents, handlers, UI
 supabase/         Migrations + edge functions
-src/              Legacy Next.js — reference only, do not extend
+src/              Legacy Next.js — **deprecated** (see src/README.md)
 ```
 
 ---
