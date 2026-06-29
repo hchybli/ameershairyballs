@@ -26,3 +26,32 @@ Notable external findings from standing **WEB RADAR** directive. Propose changes
 No change to north star from this sweep. Confirms sequence: billing moat first, all-in-one later.
 
 **Next sweep:** Start of WS-07 intelligence work or 2026-Q3 competitive refresh.
+
+---
+
+## 2026-06-29 — Agent fleet orchestration (WS-AGENTS-00/01/02)
+
+### Eligibility APIs (adapter target)
+
+| Finding | Source | Implication |
+|---------|--------|-------------|
+| Vyne acquired Onederful; **v2 universal JSON schema** normalizes payer-specific 271 data | [developers.onederful.co/blog/eligibility-v2](https://developers.onederful.co/blog/eligibility-v2) | Our `EligibilityAdapter` should target Onederful v2 shape; synthetic fixture must match |
+| POST `/eligibility` with subscriber + provider NPI + payer; optional `procedure_codes` (up to 10 CDT) | [developers.onederful.co/documentation](https://developers.onederful.co/documentation) | Adapter interface: `checkEligibility(request) → normalized benefit breakdown` |
+| 240+ payer connections; JSON/HTML/X12 270/271 | [vynedental.com/api-eligibility-benefits](https://vynedental.com/api-eligibility-benefits/) | Phase 1: synthetic adapter only; real `VyneOnederfulAdapter` behind OAuth later |
+
+### Competitors — denial / eligibility AI
+
+| Finding | Source | Implication |
+|---------|--------|-------------|
+| **Archy Verify** live; **Archy Revenue** still "in development" / planned 2026 | [archy.com/ai](https://www.archy.com/ai), [PR May 2026 Scribe](https://www.morningstar.com/news/pr-newswire/20260504la49688/archy-launches-native-ai-scribe-inside-its-dental-pms) | Denial-prediction from moat is still open wedge before Revenue ships deep |
+| Archy Intelligence = 5 agents; billing depth not yet marketed as denial-prediction engine | [PR Newswire Jun 2025](https://www.prnewswire.com/news-releases/introducing-archy-intelligence-your-newest-ai-team-members-302482130.html) | Moat compounding (CDT×payer×outcome) remains differentiated vs generic scrub |
+| Curve Eligibility+; bolt-on AI (DentalRobot, VideaAI) for denial flagging on existing PMS | [themolarreport.com/learn/best-ai-dental-insurance-claims](https://www.themolarreport.com/learn/best-ai-dental-insurance-claims) | Overlay + warm payer_intelligence is the structural answer to full-PMS rip-and-replace |
+
+### Stack
+
+| Finding | Proposal |
+|---------|----------|
+| Anthropic tool-use pattern fits `@backstop/tools` + orchestrator | Sonnet for judgment agents; Haiku for extraction; **no keys client-side** — edge/worker only |
+| `eligibility_271.json` referenced in README but **not yet in repo** | Create `data/synthetic/eligibility-onederful-v2.json` as part of WS-AGENTS-01 |
+
+**Proposal (not auto-implemented):** Rules+moat-first denial scoring; LLM optional for narrative reasons; eligibility synthetic adapter before live Vyne OAuth.

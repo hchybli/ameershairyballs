@@ -9,6 +9,7 @@
     "@backstop/handlers": "../../packages/handlers/src/index.ts",
     "@backstop/intelligence": "../../packages/intelligence/src/index.ts",
     "@backstop/integrations": "../../packages/integrations/src/index.ts",
+    "@backstop/tools": "../../packages/tools/src/index.ts",
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2"
   },
   "compilerOptions": {

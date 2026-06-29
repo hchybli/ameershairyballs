@@ -1,5 +1,5 @@
 {
-  "name": "@backstop/agents",
+  "name": "@backstop/tools",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@backstop/core": "*",
-    "@backstop/integrations": "*",
-    "@backstop/tools": "*"
+    "@backstop/db": "*",
+    "@backstop/events": "*",
+    "@backstop/intelligence": "*"
   }
 }

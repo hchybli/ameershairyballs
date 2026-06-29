@@ -1,16 +1,19 @@
 # @backstop/tools
 
-Agent function-calling tools — the only way agents mutate system state.
+Agent function-calling tools — the **only** way agents mutate system state.
 
-## Planned tools
+## Tools
 
 | Tool | Action |
 |------|--------|
-| `query_claims` | Read claim + lines |
+| `query_claims` | Read `claims_current` + lines |
 | `query_payer_intelligence` | Read moat table |
-| `emit_flag` | Write `flag.raised` event |
-| `compute_kpi` | For Jarvis later |
+| `query_eligibility` | Read `eligibility_current` snapshot |
+| `raise_flag` | Emit `flag.raised` |
+| `emit_event` | Emit allowlisted agent events |
+
+Agents **never** write domain read models directly.
 
 ## Workstream
 
-WS-04
+WS-AGENTS-00

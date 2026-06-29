@@ -1,7 +1,7 @@
-import { scrubClaimsWithAutoFix } from "@backstop/agents";
+import { runScrubRulesAgent } from "@backstop/agents";
 import type { ParsedClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
-import { BillingEventType, emit, flagRaisedDedupeKey, replay } from "@backstop/events";
+import { replay } from "@backstop/events";
 import type { HandlerAuth } from "./types.ts";
 
 export interface RunScrubInput {
@@ -62,48 +62,21 @@ export async function handleRunScrub(
     });
   }
 
-  const { flags } = scrubClaimsWithAutoFix(parsedClaims);
-  const eventIds: string[] = [];
-  let flagsRaised = 0;
+  const clinicIdByExternalId = new Map(
+    claims.map((c) => [c.external_claim_id, c.clinic_id]),
+  );
 
-  for (const flag of flags) {
-    const claim = claims.find((c) => c.external_claim_id === flag.externalClaimId);
-    if (!claim) continue;
+  const scrubResult = await runScrubRulesAgent(
+    db,
+    { tenantId: auth.tenantId, userId: auth.userId },
+    { claims: parsedClaims, clinicIdByExternalId },
+  );
 
-    const dedupeKey = flagRaisedDedupeKey(
-      auth.tenantId,
-      flag.externalClaimId,
-      flag.lineIndex >= 0 ? flag.lineIndex : null,
-      flag.type,
-    );
-
-    const result = await emit(db, {
-      tenantId: auth.tenantId,
-      clinicId: claim.clinic_id,
-      type: BillingEventType.FlagRaised,
-      actorId: auth.userId,
-      dedupeKey,
-      payload: {
-        external_claim_id: flag.externalClaimId,
-        line_index: flag.lineIndex >= 0 ? flag.lineIndex : null,
-        cdt_code: flag.cdtCode,
-        flag_type: flag.type,
-        severity: flag.severity,
-        dollar_impact: flag.dollarImpact,
-        reason: flag.reason,
-        suggested_fix: flag.suggestedFix ?? null,
-        raised_by: "rules",
-        rule_id: flag.type,
-      },
-    });
-
-    if (result.created) {
-      flagsRaised += 1;
-    }
-    eventIds.push(result.id);
-  }
-
-  await replay(db);
-
-  return { ok: true, data: { flags_raised: flagsRaised, event_ids: eventIds } };
+  return {
+    ok: true,
+    data: {
+      flags_raised: scrubResult.eventsCreated,
+      event_ids: scrubResult.event_ids,
+    },
+  };
 }
