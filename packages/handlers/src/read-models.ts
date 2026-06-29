@@ -9,41 +9,40 @@ const SEVERITY_RANK: Record<string, number> = {
 };
 
 export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<QueueRow[]> {
-  const { data: flags, error } = await supabase
+  const { data: flags, error: flagsError } = await supabase
     .from("flags_open")
-    .select(
-      `
-      id,
-      claim_id,
-      flag_type,
-      severity,
-      dollar_impact,
-      reason,
-      claims_current!inner (
-        external_claim_id,
-        patient_ref,
-        payer_name,
-        updated_at
-      )
-    `,
-    );
+    .select("id, claim_id, flag_type, severity, dollar_impact, reason");
 
-  if (error) {
-    throw new Error(`queue query failed: ${error.message}`);
+  if (flagsError) {
+    throw new Error(`queue query failed: ${flagsError.message}`);
   }
 
+  if (!flags?.length) {
+    return [];
+  }
+
+  const claimIds = [...new Set(flags.map((flag) => flag.claim_id))];
+  const { data: claims, error: claimsError } = await supabase
+    .from("claims_current")
+    .select("id, external_claim_id, patient_ref, payer_name, updated_at")
+    .in("id", claimIds);
+
+  if (claimsError) {
+    throw new Error(`queue claims query failed: ${claimsError.message}`);
+  }
+
+  const claimById = new Map((claims ?? []).map((claim) => [claim.id, claim]));
+
   const byClaim = new Map<string, QueueRow & { claimId: string }>();
-  const claimIds = new Set<string>();
+  const visibleClaimIds = new Set<string>();
 
-  for (const flag of flags ?? []) {
-    const claim = flag.claims_current as {
-      external_claim_id: string;
-      patient_ref: string;
-      payer_name: string;
-      updated_at: string;
-    };
+  for (const flag of flags) {
+    const claim = claimById.get(flag.claim_id);
+    if (!claim) {
+      continue;
+    }
 
-    claimIds.add(flag.claim_id);
+    visibleClaimIds.add(flag.claim_id);
     const key = claim.external_claim_id;
     const existing = byClaim.get(key);
     const severity = flag.severity ?? "low";
@@ -79,11 +78,11 @@ export async function fetchWorkQueue(supabase: BackstopSupabaseClient): Promise<
     }
   }
 
-  if (claimIds.size > 0) {
+  if (visibleClaimIds.size > 0) {
     const { data: lines } = await supabase
       .from("claim_lines_current")
       .select("claim_id, fee_billed")
-      .in("claim_id", [...claimIds]);
+      .in("claim_id", [...visibleClaimIds]);
 
     const feeByClaim = new Map<string, number>();
     for (const line of lines ?? []) {

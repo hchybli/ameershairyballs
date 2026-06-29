@@ -5,6 +5,7 @@ import {
   claimIngestedDedupeKey,
   emit,
   flagRaisedDedupeKey,
+  replay,
 } from "@backstop/events";
 import { parseClaimsCsv } from "@backstop/integrations";
 import { assertClinicAccess } from "./clinic-access.ts";
@@ -18,7 +19,14 @@ export interface IngestClaimsInput {
 export interface IngestClaimsResult {
   claims_ingested: number;
   lines_ingested: number;
+  /** Scrub findings in this upload (includes already-recorded flags). */
+  flags_found: number;
+  /** New flag.raised events written this upload (dedupe skips excluded). */
   flags_raised: number;
+  /** Open flags on the work queue for this clinic after replay. */
+  flags_open: number;
+  /** Claims with at least one open flag on the work queue for this clinic. */
+  claims_on_queue: number;
   event_ids: string[];
   errors: string[];
   message: string;
@@ -110,15 +118,39 @@ export async function handleIngestClaims(
 
   const linesIngested = fixedClaims.reduce((sum, claim) => sum + claim.lines.length, 0);
 
+  // Always replay so read models stay correct when ingest events are idempotent skips.
+  await replay(db);
+
+  const { data: openFlags, error: openError } = await db
+    .from("flags_open")
+    .select("claim_id, claims_current!inner(clinic_id)")
+    .eq("tenant_id", auth.tenantId)
+    .eq("claims_current.clinic_id", input.clinicId);
+
+  if (openError) {
+    throw new Error(`flags_open count failed: ${openError.message}`);
+  }
+
+  const claimsOnQueue = new Set((openFlags ?? []).map((row) => row.claim_id)).size;
+  const flagsOpen = openFlags?.length ?? 0;
+  const flagsFound = flags.length;
+  const newPhrase =
+    flagsRaised === flagsFound
+      ? `${flagsFound} flag(s)`
+      : `${flagsFound} flag(s) (${flagsRaised} new)`;
+
   return {
     ok: true,
     data: {
       claims_ingested: parsed.claims.length,
       lines_ingested: linesIngested,
+      flags_found: flagsFound,
       flags_raised: flagsRaised,
+      flags_open: flagsOpen,
+      claims_on_queue: claimsOnQueue,
       event_ids: eventIds,
       errors: parsed.errors,
-      message: `Ingested ${parsed.claims.length} claim(s), ${flagsRaised} flag(s) raised.`,
+      message: `Ingested ${parsed.claims.length} claim(s). Scrub found ${newPhrase}. Work queue: ${claimsOnQueue} claim(s), ${flagsOpen} open flag(s).`,
     },
   };
 }

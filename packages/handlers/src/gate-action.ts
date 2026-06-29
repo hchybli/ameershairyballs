@@ -1,5 +1,5 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import { BillingEventType, emit } from "@backstop/events";
+import { BillingEventType, emit, replay } from "@backstop/events";
 import type { HandlerAuth } from "./types.ts";
 
 export interface GateActionInput {
@@ -67,6 +67,8 @@ export async function handleGateAction(
     actorId: auth.userId,
     payload,
   });
+
+  await replay(db);
 
   return {
     ok: true,

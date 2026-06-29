@@ -55,11 +55,13 @@ State workstream ID (WS-XX) and link acceptance criteria from WORKSTREAMS.md.
 - Pose these as real questions a sharp skeptic or investor would ask, not softballs. The goal is to genuinely test the direction and let some challenges land — if I'm defending everything, push harder.
 - If I say "not now," log that the red-team is deferred and raise it next session. Don't nag mid-task; pick a natural stopping point.
 
-### SELF-VERIFY
+### SELF-VERIFY (agent-owned — human only when unavoidable)
 
-- For any task you can run, verify it yourself — install, build, typecheck, boot the dev servers (start, confirm clean, stop), run the full test suite (`npm run test`, `test:events`, `test:seed`, `test:handlers`), `deno check` the edge functions, lint.
-- Iterate until green. Only escalate steps you truly cannot do here (browser clicks, interactive CLI logins, blocked live-DB/deploy) and name the exact command for the human.
-- Before edge function changes or deploy-related work, run `npm run check:edge` (must pass).
+- **Default:** You run all verification. Do not ask the user to run tests, `npm run verify`, smoke, or clickthrough unless a step truly requires them (e.g. visual UI check, `supabase login`, production promote).
+- For any task you can run, verify it yourself — install, build, typecheck, boot the dev servers (start, confirm clean, stop), run **`npm run verify`** (includes unit/integration tests, edge `deno check`, smoke, and clickthrough when `.env` is configured).
+- Iterate until green before reporting done. Only escalate steps you truly cannot do here (browser click-through, visual rendering checks, interactive CLI logins such as `supabase login`, and **`npm run deploy:edge`** after edge changes) and name the exact command for the human.
+- Before edge function changes or deploy-related work, run `npm run check:edge` (must pass) and `npm run smoke` (must pass when `.env` is configured).
+- **Workstreams touching parsing, edge functions, schema, or data-flow:** run `npm run verify` to green before reporting done — you own all headless verification; the human only does visual/CLI steps you cannot automate.
 
 ### EDGE IMPORTS (Supabase deploy — do not regress)
 

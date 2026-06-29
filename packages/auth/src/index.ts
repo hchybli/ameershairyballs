@@ -3,6 +3,7 @@ export {
   useAuth,
   useTenant,
 } from "./context";
+export { SignOutButton } from "./sign-out";
 export {
   RequireAuth,
   RequireRole,

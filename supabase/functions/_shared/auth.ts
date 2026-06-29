@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { parseAppMetadata } from "../../../packages/auth/src/session.ts";
 import type { HandlerAuth } from "../../../packages/handlers/src/types.ts";
+import { corsJson } from "./http.ts";
 
 export function createAdminClient() {
   const url = Deno.env.get("SUPABASE_URL");
@@ -18,10 +19,7 @@ export async function requireAuth(req: Request): Promise<{ ok: true; auth: Handl
   if (!authHeader?.startsWith("Bearer ")) {
     return {
       ok: false,
-      response: new Response(JSON.stringify({ error: "Unauthorized", code: "FORBIDDEN" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }),
+      response: corsJson({ error: "Unauthorized", code: "FORBIDDEN" }, 401),
     };
   }
 
@@ -32,10 +30,7 @@ export async function requireAuth(req: Request): Promise<{ ok: true; auth: Handl
   if (error || !data.user) {
     return {
       ok: false,
-      response: new Response(JSON.stringify({ error: "Invalid token", code: "FORBIDDEN" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }),
+      response: corsJson({ error: "Invalid token", code: "FORBIDDEN" }, 401),
     };
   }
 
@@ -43,10 +38,7 @@ export async function requireAuth(req: Request): Promise<{ ok: true; auth: Handl
   if (!meta) {
     return {
       ok: false,
-      response: new Response(JSON.stringify({ error: "Missing app metadata", code: "FORBIDDEN" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      }),
+      response: corsJson({ error: "Missing app metadata", code: "FORBIDDEN" }, 403),
     };
   }
 

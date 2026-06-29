@@ -106,7 +106,7 @@ export async function applySingleEventProjection(
 
   if (error) throw new Error(`load events for projection: ${error.message}`);
 
-  const { foldEvents } = await import("./projectors/index");
+  const { foldEvents } = await import("./projectors/index.ts");
   const state = foldEvents(
     (allEvents ?? []).map((row) =>
       toStoredEvent({ ...row, payload: row.payload as Record<string, unknown> }),

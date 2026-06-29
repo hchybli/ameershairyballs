@@ -13,11 +13,13 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createServiceClient } from "../packages/db/src/server.ts";
+import { scrubClaimsWithAutoFix } from "@backstop/agents";
 import { parseClaimsCsv } from "../packages/integrations/src/adapters/csv-dentrix.ts";
 import {
   BillingEventType,
   claimIngestedDedupeKey,
   emit,
+  flagRaisedDedupeKey,
   outcomeReceivedDedupeKey,
   replay,
 } from "../packages/events/src/index.ts";
@@ -232,6 +234,38 @@ async function seedClinicFixtures(
     );
   }
 
+  const { flags } = scrubClaimsWithAutoFix(parsed.claims);
+  for (const flag of flags) {
+    const dedupeKey = flagRaisedDedupeKey(
+      tenantId,
+      flag.externalClaimId,
+      flag.lineIndex >= 0 ? flag.lineIndex : null,
+      flag.type,
+    );
+    const { created } = await emit(db, {
+      tenantId,
+      clinicId,
+      type: BillingEventType.FlagRaised,
+      actorId,
+      dedupeKey,
+      payload: {
+        external_claim_id: flag.externalClaimId,
+        line_index: flag.lineIndex >= 0 ? flag.lineIndex : null,
+        cdt_code: flag.cdtCode,
+        flag_type: flag.type,
+        severity: flag.severity,
+        dollar_impact: flag.dollarImpact,
+        reason: flag.reason,
+        suggested_fix: flag.suggestedFix ?? null,
+        raised_by: "rules",
+        rule_id: flag.type,
+      },
+    });
+    console.log(
+      `  flag.raised → ${flag.externalClaimId} ${flag.type} (${created ? "created" : "skipped"})`,
+    );
+  }
+
   const outcomesCsv = loadFixture(outcomesFile);
   for (const row of parseOutcomesCsv(outcomesCsv)) {
     const dedupeKey = outcomeReceivedDedupeKey(tenantId, row.external_claim_id);
@@ -338,6 +372,23 @@ export async function runSeed(): Promise<void> {
   console.log(
     `  Isolation operator: ${CREDENTIALS.isolationOperator.email} / ${CREDENTIALS.isolationOperator.password}`,
   );
+
+  // Demo reset: drop prior operator resolutions so replay restores the work queue.
+  for (const tenantId of [tenantAId, tenantBId]) {
+    const { error: resolvedError } = await db.from("flags_resolved").delete().eq("tenant_id", tenantId);
+    if (resolvedError) {
+      throw new Error(`Failed to clear demo flags_resolved: ${resolvedError.message}`);
+    }
+
+    const { error: resetError } = await db
+      .from("events")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .in("type", ["flag.approved", "flag.overridden"]);
+    if (resetError) {
+      throw new Error(`Failed to reset demo flag resolutions: ${resetError.message}`);
+    }
+  }
 
   await replay(db);
 }

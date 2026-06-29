@@ -11,7 +11,8 @@ Backstop Phase 1 runs on **Supabase** (Postgres + Auth + Edge Functions) with **
 | Command | What it does |
 |---------|----------------|
 | `npm run dev` | Kill stale Vite processes, then start **operator** (`:5173`) + **owner** (`:5174`) together |
-| `npm run verify` | Full self-check (edge imports + deno ×5, build, all tests) — fails on first error |
+| `npm run verify` | Full self-check (edge imports + deno ×5, build, all tests, **smoke**) — fails on first error |
+| `npm run smoke` | Headless synthetic E2E (handlers + RLS + scorecards; requires `.env`) |
 | `npm run deploy:edge` | Run `predeploy:edge`, then deploy all 5 edge functions to `ndgembdlqevybokxikkd` (requires `supabase login`) |
 | `npm run seed` | Load synthetic tenants + claims (requires `.env`) |
 
@@ -56,6 +57,18 @@ npm run deploy:edge   # after verify passes; needs supabase login
 1. **Operator** `/upload` — upload `data/synthetic/sample-claims.csv`
 2. **Work queue** `/` — open claim → Approve / Override (reason required)
 3. **Owner** `/` — clean-claim rate KPI + upload `data/synthetic/sample-outcomes.csv`
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| **Failed to fetch** on upload/KPI | Use `npm run dev` (ports **5173** / **5174** only). Close tabs on old ports (5175+). After edge CORS changes run `npm run deploy:edge`. |
+| **Invalid token** | Click **Sign out** in the app header, or clear `sb-*` keys in browser localStorage, then sign in again. |
+| Upload succeeds but **work queue empty** | Re-upload is idempotent — run `npm run seed` to reset demo flags, or upload a fresh CSV. Handlers call `replay()` to refresh read models. |
+| Owner dashboard **unchanged** after outcomes upload | Outcomes may already exist from seed (idempotent). Message explains count; KPI still refreshes. |
+| Stale Vite / wrong port | `npm run dev` kills ports 5173–5178 before starting. |
 
 ---
 

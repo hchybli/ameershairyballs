@@ -1,10 +1,12 @@
 import type { BackstopServiceClient } from "@backstop/db";
-import { BillingEventType, emit, outcomeReceivedDedupeKey } from "@backstop/events";
+import { BillingEventType, emit, outcomeReceivedDedupeKey, replay } from "@backstop/events";
 import { parseOutcomesCsv } from "@backstop/integrations";
 import type { HandlerAuth } from "./types.ts";
 
 export interface IngestOutcomesResult {
+  outcomes_in_file: number;
   outcomes_recorded: number;
+  outcomes_total: number;
   intelligence_rows_updated: number;
   warnings: string[];
   errors: string[];
@@ -75,19 +77,30 @@ export async function handleIngestOutcomes(
     }
   }
 
-  const { count } = await db
-    .from("payer_intelligence")
-    .select("id", { count: "exact", head: true })
-    .eq("tenant_id", auth.tenantId);
+  await replay(db);
+
+  const [{ count: outcomesTotal }, { count: intelRows }] = await Promise.all([
+    db.from("outcomes").select("id", { count: "exact", head: true }).eq("tenant_id", auth.tenantId),
+    db.from("payer_intelligence").select("id", { count: "exact", head: true }).eq("tenant_id", auth.tenantId),
+  ]);
+
+  const inFile = parsed.outcomes.length;
+  const total = outcomesTotal ?? 0;
+  const message =
+    outcomesRecorded > 0
+      ? `Recorded ${outcomesRecorded} new outcome(s) (${inFile} in file). Dashboard shows ${total} total outcome(s).`
+      : `No new outcomes — ${inFile} row(s) in file were already recorded. Dashboard shows ${total} total outcome(s).`;
 
   return {
     ok: true,
     data: {
+      outcomes_in_file: inFile,
       outcomes_recorded: outcomesRecorded,
-      intelligence_rows_updated: count ?? 0,
+      outcomes_total: total,
+      intelligence_rows_updated: intelRows ?? 0,
       warnings,
       errors: parsed.errors,
-      message: `Recorded ${outcomesRecorded} outcome(s).`,
+      message,
     },
   };
 }

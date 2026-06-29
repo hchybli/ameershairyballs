@@ -15,6 +15,8 @@ const STEPS: Array<{ label: string; args: string[] }> = [
   { label: "test:events", args: ["run", "test:events"] },
   { label: "test:seed", args: ["run", "test:seed"] },
   { label: "test:handlers", args: ["run", "test:handlers"] },
+  { label: "smoke (synthetic E2E + RLS)", args: ["run", "smoke"] },
+  { label: "clickthrough (live edge HTTP + RLS)", args: ["run", "clickthrough"] },
 ];
 
 function runStep(label: string, args: string[]): void {

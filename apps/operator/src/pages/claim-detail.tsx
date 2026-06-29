@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "@backstop/auth";
-import { callEdgeFunction } from "@backstop/api-client";
-import { createBrowserClient } from "@backstop/db";
+import { useAuth, SignOutButton } from "@backstop/auth";
+import { callEdgeFunctionAuthed, formatEdgeError } from "@backstop/api-client";
 import { fetchClaimDetail } from "@backstop/handlers/browser";
 import type { StoredClaim } from "@backstop/core";
 import { AppShell, Card, FlagCard } from "@backstop/ui";
@@ -10,16 +9,15 @@ import { AppShell, Card, FlagCard } from "@backstop/ui";
 export function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { supabaseSession } = useAuth();
+  const { supabase } = useAuth();
   const [claim, setClaim] = useState<StoredClaim | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!id) return;
-    const supabase = createBrowserClient();
     const data = await fetchClaimDetail(supabase, id);
     setClaim(data);
-  }, [id]);
+  }, [id, supabase]);
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -41,21 +39,15 @@ export function ClaimDetailPage() {
   }, [openFlags]);
 
   async function gate(flagId: string, action: "approve" | "override", reason?: string) {
-    const token = supabaseSession?.access_token;
-    if (!token) {
-      alert("Not signed in.");
-      return;
-    }
-
-    const res = await callEdgeFunction(token, "gate-action", {
+    const res = await callEdgeFunctionAuthed(supabase, "gate-action", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ flag_id: flagId, action, reason }),
     });
 
     if (!res.ok) {
-      const err = await res.json();
-      alert(err.error ?? "Gate action failed");
+      const err = await res.json().catch(() => ({}));
+      alert(formatEdgeError(res.status, err));
       return;
     }
     await load();
@@ -63,7 +55,11 @@ export function ClaimDetailPage() {
 
   if (loading) {
     return (
-      <AppShell title="Backstop Operator" nav={[{ href: "/", label: "Work queue" }]}>
+      <AppShell
+        title="Backstop Operator"
+        nav={[{ href: "/", label: "Work queue" }]}
+        actions={<SignOutButton />}
+      >
         <p className="text-sm text-muted-foreground">Loading…</p>
       </AppShell>
     );
@@ -71,7 +67,11 @@ export function ClaimDetailPage() {
 
   if (!claim) {
     return (
-      <AppShell title="Backstop Operator" nav={[{ href: "/", label: "Work queue" }]}>
+      <AppShell
+        title="Backstop Operator"
+        nav={[{ href: "/", label: "Work queue" }]}
+        actions={<SignOutButton />}
+      >
         <p>Claim not found.</p>
       </AppShell>
     );
@@ -87,6 +87,7 @@ export function ClaimDetailPage() {
         { href: "/", label: "Work queue" },
         { href: "/upload", label: "Upload CSV" },
       ]}
+      actions={<SignOutButton />}
     >
       <Link to="/" className="text-sm text-muted-foreground hover:underline">
         ← Work queue

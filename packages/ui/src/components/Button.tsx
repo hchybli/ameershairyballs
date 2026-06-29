@@ -12,6 +12,7 @@ const VARIANT: Record<ButtonVariant, string> = {
 
 export function Button({
   variant = "secondary",
+  type = "button",
   className,
   children,
   ...props
@@ -21,7 +22,7 @@ export function Button({
 }) {
   return (
     <button
-      type="button"
+      type={type}
       className={cn(
         "inline-flex min-h-11 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-40",
         VARIANT[variant],

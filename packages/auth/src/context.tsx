@@ -13,6 +13,7 @@ import { parseAppMetadata, type BackstopSession } from "./session";
 interface AuthContextValue {
   session: BackstopSession | null;
   supabaseSession: Session | null;
+  supabase: ReturnType<typeof createBrowserClient>;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -48,14 +49,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) {
-        return;
+    async function bootstrapSession() {
+      const { data } = await supabase.auth.getSession();
+      let active = data.session;
+      if (active) {
+        const { data: refreshed, error } = await supabase.auth.refreshSession();
+        if (error || !refreshed.session) {
+          await supabase.auth.signOut();
+          active = null;
+        } else {
+          active = refreshed.session;
+        }
       }
-      setSupabaseSession(data.session);
-      setSession(sessionFromUser(data.session?.user ?? null));
+      if (!mounted) return;
+      setSupabaseSession(active);
+      setSession(sessionFromUser(active?.user ?? null));
       setLoading(false);
-    });
+    }
+
+    void bootstrapSession();
 
     const {
       data: { subscription },
@@ -75,9 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       supabaseSession,
+      supabase,
       loading,
       async signIn(email, password) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (!error && data.session) {
+          await supabase.auth.refreshSession();
+        }
         return { error: error?.message ?? null };
       },
       async signOut() {

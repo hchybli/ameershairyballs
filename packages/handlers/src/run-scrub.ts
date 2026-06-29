@@ -1,7 +1,7 @@
 import { scrubClaimsWithAutoFix } from "@backstop/agents";
 import type { ParsedClaim } from "@backstop/core";
 import type { BackstopServiceClient } from "@backstop/db";
-import { BillingEventType, emit, flagRaisedDedupeKey } from "@backstop/events";
+import { BillingEventType, emit, flagRaisedDedupeKey, replay } from "@backstop/events";
 import type { HandlerAuth } from "./types.ts";
 
 export interface RunScrubInput {
@@ -102,6 +102,8 @@ export async function handleRunScrub(
     }
     eventIds.push(result.id);
   }
+
+  await replay(db);
 
   return { ok: true, data: { flags_raised: flagsRaised, event_ids: eventIds } };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@backstop/auth";
-import { callEdgeFunction } from "@backstop/api-client";
+import { useAuth, SignOutButton } from "@backstop/auth";
+import { callEdgeFunctionAuthed, formatEdgeError } from "@backstop/api-client";
 import { AppShell, Card, MetricTile } from "@backstop/ui";
 
 interface KpiResponse {
@@ -35,43 +35,73 @@ interface KpiResponse {
 type TileFilter = "all" | "dirty" | "denials";
 
 export function DashboardPage() {
-  const { supabaseSession } = useAuth();
+  const { supabase, session, loading: authLoading } = useAuth();
   const [kpi, setKpi] = useState<KpiResponse | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [kpiError, setKpiError] = useState<string | null>(null);
+  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [uploadOk, setUploadOk] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<TileFilter>("dirty");
 
   async function loadKpi() {
-    const token = supabaseSession?.access_token;
-    if (!token) return;
+    try {
+      const res = await callEdgeFunctionAuthed(supabase, "analytics-kpi");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setKpiError(formatEdgeError(res.status, err as { error?: string }));
+        return;
+      }
 
-    const res = await callEdgeFunction(token, "analytics-kpi");
-    if (res.ok) {
+      setKpiError(null);
       setKpi(await res.json());
+    } catch (err) {
+      setKpiError(err instanceof Error ? err.message : "Dashboard load failed");
     }
   }
 
   useEffect(() => {
+    if (authLoading || !session) {
+      return;
+    }
     loadKpi().finally(() => setLoading(false));
-  }, [supabaseSession?.access_token]);
+  }, [supabase, session, authLoading]);
 
   async function uploadOutcomes(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const token = supabaseSession?.access_token;
-    if (!token) return;
+    setUploadMessage(null);
 
     const form = e.currentTarget;
     const fileInput = form.elements.namedItem("file") as HTMLInputElement;
     const file = fileInput.files?.[0];
-    if (!file) return;
+    if (!file) {
+      setUploadOk(false);
+      setUploadMessage("Choose a CSV file first.");
+      return;
+    }
 
-    const body = new FormData();
-    body.append("file", file);
-    const res = await callEdgeFunction(token, "ingest-outcomes", { method: "POST", body });
-    const data = await res.json();
-    setMessage(data.message ?? data.error);
-    await loadKpi();
-    fileInput.value = "";
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await callEdgeFunctionAuthed(supabase, "ingest-outcomes", { method: "POST", body });
+      const data = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+      setUploadOk(res.ok);
+      setUploadMessage(
+        res.ok
+          ? (data.message ?? "Outcomes recorded.")
+          : formatEdgeError(res.status, data),
+      );
+      if (res.ok) {
+        await loadKpi();
+      }
+      fileInput.value = "";
+    } catch (err) {
+      setUploadOk(false);
+      setUploadMessage(err instanceof Error ? err.message : "Upload failed — check console.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   const tableRows = useMemo(() => {
@@ -84,11 +114,24 @@ export function DashboardPage() {
   }, [kpi, filter]);
 
   return (
-    <AppShell title="Backstop Owner" nav={[{ href: "/", label: "Dashboard", active: true }]}>
+    <AppShell
+      title="Backstop Owner"
+      nav={[{ href: "/", label: "Dashboard", active: true }]}
+      actions={<SignOutButton />}
+    >
       <div>
         <h1 className="text-2xl font-semibold text-[color:var(--bs-navy)]">Command center</h1>
         <p className="text-sm text-muted-foreground">Synthetic demo · tenant-scoped via RLS</p>
       </div>
+
+      {kpiError && (
+        <Card className="mt-4 border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {kpiError}
+          <button type="button" onClick={() => void loadKpi()} className="ml-2 font-medium underline">
+            Retry
+          </button>
+        </Card>
+      )}
 
       {loading ? (
         <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
@@ -208,12 +251,18 @@ export function DashboardPage() {
             <input type="file" name="file" accept=".csv" className="text-sm" />
             <button
               type="submit"
-              className="min-h-11 rounded-md bg-[color:var(--bs-navy)] px-4 py-2 text-sm font-medium text-white"
+              disabled={uploading}
+              className="min-h-11 rounded-md bg-[color:var(--bs-navy)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              Record outcomes
+              {uploading ? "Uploading…" : "Record outcomes"}
             </button>
           </div>
-          {message && <p className="mt-2 text-sm text-muted-foreground">{message}</p>}
+          {uploading && <p className="mt-2 text-sm text-muted-foreground">Recording outcomes…</p>}
+          {uploadMessage && (
+            <p className={`mt-2 text-sm ${uploadOk ? "text-muted-foreground" : "text-red-700"}`}>
+              {uploadMessage}
+            </p>
+          )}
         </form>
       </Card>
     </AppShell>

@@ -24,6 +24,8 @@
     "fix:edge-imports": "tsx scripts/fix-edge-import-extensions.ts",
     "predeploy:edge": "npm run check:edge",
     "verify": "tsx scripts/verify-all.ts",
+    "smoke": "tsx --env-file=.env --test scripts/smoke.test.ts",
+    "clickthrough": "tsx --env-file=.env --test scripts/clickthrough.test.ts",
     "deploy:edge": "bash scripts/deploy-edge.sh",
     "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },

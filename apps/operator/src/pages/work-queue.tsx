@@ -1,26 +1,36 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "@backstop/auth";
-import { createBrowserClient } from "@backstop/db";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth, SignOutButton } from "@backstop/auth";
 import { fetchWorkQueue } from "@backstop/handlers/browser";
 import type { QueueRow } from "@backstop/core";
 import { AppShell, Button, Card, SeverityBadge } from "@backstop/ui";
 
 export function WorkQueuePage() {
-  const { session } = useAuth();
+  const { session, supabase } = useAuth();
+  const location = useLocation();
+  const uploadNotice = (location.state as { uploadMessage?: string } | null)?.uploadMessage;
   const [rows, setRows] = useState<QueueRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!session) return;
-    const supabase = createBrowserClient();
-    const data = await fetchWorkQueue(supabase);
-    setRows(data);
-  }, [session]);
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await fetchWorkQueue(supabase);
+      setRows(data);
+    } catch (err) {
+      setRows([]);
+      setError(err instanceof Error ? err.message : "Failed to load work queue");
+    } finally {
+      setLoading(false);
+    }
+  }, [session, supabase]);
 
   useEffect(() => {
-    load().finally(() => setLoading(false));
-  }, [load]);
+    void load();
+  }, [load, location.key]);
 
   return (
     <AppShell
@@ -29,6 +39,7 @@ export function WorkQueuePage() {
         { href: "/", label: "Work queue", active: true },
         { href: "/upload", label: "Upload CSV" },
       ]}
+      actions={<SignOutButton />}
     >
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -41,6 +52,19 @@ export function WorkQueuePage() {
           <Button variant="primary">Upload CSV</Button>
         </Link>
       </div>
+
+      {uploadNotice && (
+        <Card className="mb-4 border-green-200 bg-green-50 p-4 text-sm text-green-900">{uploadNotice}</Card>
+      )}
+
+      {error && (
+        <Card className="mb-4 border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          {error}
+          <button type="button" onClick={() => void load()} className="ml-2 font-medium underline">
+            Retry
+          </button>
+        </Card>
+      )}
 
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
