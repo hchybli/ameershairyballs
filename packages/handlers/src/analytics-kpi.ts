@@ -113,6 +113,8 @@ export async function handleAnalyticsKpi(db: BackstopServiceClient, auth: Handle
     outcomesDenied: kpi.outcomesDenied,
     dollarsRecovered: kpi.dollarsRecovered,
     drillDown: kpi.drillDown,
+    openFlagsDrillDown: kpi.openFlagsDrillDown,
+    allClaimsDrillDown: kpi.allClaimsDrillDown,
     payerScorecards,
   };
 }

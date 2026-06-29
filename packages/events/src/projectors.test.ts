@@ -133,4 +133,81 @@ describe("projectors (pure)", () => {
     assert.equal(intel!.sample_size, 2);
     assert.equal(intel!.avg_paid_amount, 150);
   });
+
+  test("flag.raised then flag.approved moves flag to resolved", () => {
+    const tenantId = "11111111-1111-4111-8111-111111111111";
+    const clinicId = "22222222-2222-4222-8222-222222222222";
+    const claimIngested = {
+      id: "e1",
+      tenant_id: tenantId,
+      clinic_id: clinicId,
+      type: BillingEventType.ClaimIngested,
+      actor_id: null,
+      created_at: "2026-06-28T11:59:00.000Z",
+      payload: {
+        event_schema_version: 1,
+        tenant_id: tenantId,
+        clinic_id: clinicId,
+        external_claim_id: "SYN-CLM-002",
+        patient_ref: "SYN-PAT-002",
+        payer_name: "MetLife Dental",
+        lines: [{ cdt_code: "D4341", fee_billed: 275, fee_allowed: 220, tooth: null, quadrant: "UR" }],
+        source: "csv_dentrix",
+        ingested_at: "2026-06-28T11:59:00.000Z",
+      },
+    };
+    const flagRaised = {
+      id: "e-flag",
+      tenant_id: tenantId,
+      clinic_id: clinicId,
+      type: BillingEventType.FlagRaised,
+      actor_id: null,
+      created_at: "2026-06-28T12:00:00.000Z",
+      payload: {
+        event_schema_version: 1,
+        tenant_id: tenantId,
+        clinic_id: clinicId,
+        external_claim_id: "SYN-CLM-002",
+        line_index: 0,
+        cdt_code: "D4341",
+        flag_type: "missing_attachment",
+        severity: "high",
+        dollar_impact: 275,
+        reason: "Needs perio chart",
+        suggested_fix: "Attach charting",
+        raised_by: "scrub_rules_agent",
+      },
+    };
+
+    const raisedOnly = foldEvents([claimIngested, flagRaised]);
+    assert.equal(raisedOnly.flagsOpen.size, 1);
+    const flagId = [...raisedOnly.flagsOpen.keys()][0]!;
+    const claimId = [...raisedOnly.claims.values()][0]!.id;
+
+    const approved = foldEvents([
+      claimIngested,
+      flagRaised,
+      {
+        id: "e-approve",
+        tenant_id: tenantId,
+        clinic_id: clinicId,
+        type: BillingEventType.FlagApproved,
+        actor_id: "user-1",
+        created_at: "2026-06-28T12:01:00.000Z",
+        payload: {
+          event_schema_version: 1,
+          tenant_id: tenantId,
+          clinic_id: clinicId,
+          flag_id: flagId,
+          claim_id: claimId,
+          actor_id: "user-1",
+          actor_role: "operator",
+        },
+      },
+    ]);
+
+    assert.equal(approved.flagsOpen.size, 0);
+    assert.equal(approved.flagsResolved.length, 1);
+    assert.equal(approved.flagsResolved[0]!.status, "approved");
+  });
 });

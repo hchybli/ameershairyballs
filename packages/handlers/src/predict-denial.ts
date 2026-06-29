@@ -1,5 +1,6 @@
 import { runDenialPredictionAgent } from "@backstop/agents";
 import type { BackstopServiceClient } from "@backstop/db";
+import { replay } from "@backstop/events";
 import type { HandlerAuth } from "./types.ts";
 
 export interface PredictDenialInput {
@@ -48,6 +49,8 @@ export async function handlePredictDenial(
       feeBilled: line.fee_billed,
     })),
   });
+
+  await replay(db);
 
   return {
     ok: true,

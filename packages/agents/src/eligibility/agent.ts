@@ -1,7 +1,7 @@
 import type { EligibilityAdapter } from "@backstop/integrations";
 import { SyntheticOnederfulAdapter } from "@backstop/integrations";
 import type { BackstopServiceClient } from "@backstop/db";
-import { eligibilityCheckedDedupeKey, replay } from "@backstop/events";
+import { eligibilityCheckedDedupeKey } from "@backstop/events";
 import { emitEventTool, raiseFlagTool, type ToolContext } from "@backstop/tools";
 import { analyzeEligibility, type EligibilityAlert } from "./analyze.ts";
 
@@ -94,8 +94,6 @@ export async function runEligibilityAgent(
       }
     }
   }
-
-  await replay(db);
 
   return {
     breakdown,

@@ -143,11 +143,14 @@ function projectEligibilityChecked(state: ProjectedState, event: StoredEvent): v
 function projectPredictionScored(state: ProjectedState, event: StoredEvent): void {
   const p = asPayload<PredictionScoredPayload>(event.payload);
   for (const line of p.lines) {
-    const intelKey = payerIntelKey(p.tenant_id, p.payer_name, line.cdt_code);
+    const cdtCode = line.cdt_code ?? (line as { cdtCode?: string }).cdtCode;
+    if (!cdtCode) continue;
+
+    const intelKey = payerIntelKey(p.tenant_id, p.payer_name, cdtCode);
     const existing = state.payerIntelligence.get(intelKey) ?? {
       tenant_id: p.tenant_id,
       payer_name: p.payer_name,
-      cdt_code: line.cdt_code,
+      cdt_code: cdtCode,
       sample_size: 0,
       paid_count: 0,
       denied_count: 0,

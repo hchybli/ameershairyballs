@@ -9,9 +9,10 @@ export interface FlagCardProps {
   onApprove: (id: string) => void;
   onFix?: (id: string) => void;
   onOverride: (id: string, reason: string) => void;
+  actionsDisabled?: boolean;
 }
 
-export function FlagCard({ flag, onApprove, onFix, onOverride }: FlagCardProps) {
+export function FlagCard({ flag, onApprove, onFix, onOverride, actionsDisabled = false }: FlagCardProps) {
   const [showOverride, setShowOverride] = useState(false);
   const [reason, setReason] = useState("");
   const resolved = flag.status !== "open";
@@ -58,14 +59,14 @@ export function FlagCard({ flag, onApprove, onFix, onOverride }: FlagCardProps) 
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
           {canFix && (
-            <Button variant="primary" onClick={() => onFix!(flag.id)}>
+            <Button variant="primary" disabled={actionsDisabled} onClick={() => onFix!(flag.id)}>
               Apply fix
             </Button>
           )}
-          <Button variant="secondary" onClick={() => onApprove(flag.id)}>
+          <Button variant="secondary" disabled={actionsDisabled} onClick={() => onApprove(flag.id)}>
             Approve
           </Button>
-          <Button variant="ghost" onClick={() => setShowOverride(true)}>
+          <Button variant="ghost" disabled={actionsDisabled} onClick={() => setShowOverride(true)}>
             Override…
           </Button>
         </div>
@@ -86,7 +87,7 @@ export function FlagCard({ flag, onApprove, onFix, onOverride }: FlagCardProps) 
           <div className="flex gap-2">
             <Button
               variant="primary"
-              disabled={!reason.trim()}
+              disabled={actionsDisabled || !reason.trim()}
               onClick={() => {
                 onOverride(flag.id, reason.trim());
                 setShowOverride(false);

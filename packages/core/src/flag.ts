@@ -7,7 +7,12 @@ export type FlagType =
   | "audit_risk"
   | "missing_attachment"
   | "fee_leakage"
-  | "perio_prophy_conflict";
+  | "perio_prophy_conflict"
+  | "denial_risk"
+  | "frequency_exceeded"
+  | "benefit_exhausted"
+  | "lapsed"
+  | "out_of_network";
 
 export type FlagStatus = "open" | "approved" | "overridden";
 

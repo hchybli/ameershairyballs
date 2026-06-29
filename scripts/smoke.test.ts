@@ -137,17 +137,30 @@ describe("smoke — synthetic E2E (live handlers + RLS)", { skip: skipIfNoEnv() 
     }
 
     const events = await loadAllEvents(db);
-    const raised = events.filter(
+    const scrubRaised = events.filter(
       (e) =>
         e.type === "flag.raised" &&
         typeof e.payload.external_claim_id === "string" &&
-        (SUNRISE_CLAIM_IDS as readonly string[]).includes(e.payload.external_claim_id),
+        (SUNRISE_CLAIM_IDS as readonly string[]).includes(e.payload.external_claim_id) &&
+        (e.payload.raised_by === "rules" || e.payload.raised_by == null),
     );
-    assert.equal(
-      raised.length,
-      expectedFlags.length,
-      `expected ${expectedFlags.length} flag.raised events for Sunrise claims`,
+    const scrubSignatures = new Set(
+      scrubRaised.map((e) =>
+        flagSignature(
+          e.payload.external_claim_id as string,
+          (e.payload.line_index as number | null) ?? 0,
+          e.payload.flag_type as string,
+          (e.payload.cdt_code as string) ?? "",
+        ),
+      ),
     );
+    for (const flag of expectedFlags) {
+      const sig = flagSignature(flag.externalClaimId, flag.lineIndex, flag.type, flag.cdtCode);
+      assert.ok(
+        scrubSignatures.has(sig),
+        `expected scrub flag.raised for ${sig} (got ${scrubSignatures.size} rule flags in event log)`,
+      );
+    }
 
     const { data: openFlags, error } = await db
       .from("flags_open")
@@ -289,6 +302,8 @@ describe("smoke — synthetic E2E (live handlers + RLS)", { skip: skipIfNoEnv() 
 
     assert.equal(kpi.metric, "clean_claim_rate");
     assert.ok(kpi.claimsIngested >= 5);
+    assert.equal(kpi.allClaimsDrillDown.length, kpi.claimsIngested);
+    assert.equal(kpi.openFlagsDrillDown.length, kpi.claimsWithOpenFlags);
     assert.equal(kpi.outcomesRecorded, 5);
     assert.equal(kpi.outcomesDenied, 2);
     assert.equal(kpi.denialRate, 40);

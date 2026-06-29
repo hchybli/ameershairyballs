@@ -1,5 +1,6 @@
 import { runEligibilityAgent } from "@backstop/agents";
 import type { BackstopServiceClient } from "@backstop/db";
+import { replay } from "@backstop/events";
 import type { HandlerAuth } from "./types.ts";
 
 export interface CheckEligibilityInput {
@@ -43,6 +44,8 @@ export async function handleCheckEligibility(
     externalClaimId: input.external_claim_id,
     procedureCodes: input.procedure_codes,
   });
+
+  await replay(db);
 
   return {
     ok: true,

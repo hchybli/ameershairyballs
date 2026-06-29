@@ -28,6 +28,8 @@ export interface KpiBundle {
   outcomesDenied: number;
   dollarsRecovered: number;
   drillDown: DrillDownRow[];
+  allClaimsDrillDown: DrillDownRow[];
+  openFlagsDrillDown: DrillDownRow[];
 }
 
 export function isClaimClean(claim: StoredClaim): boolean {
@@ -43,10 +45,12 @@ export function computeCleanClaimRate(claims: StoredClaim[]) {
       claimsClean: 0,
       claimsWithOpenFlags: 0,
       drillDown: [] as DrillDownRow[],
+      allClaimsDrillDown: [] as DrillDownRow[],
+      openFlagsDrillDown: [] as DrillDownRow[],
     };
   }
 
-  const drillDown = claims.map((c) => {
+  const allClaimsDrillDown = claims.map((c) => {
     const open = c.scrub.flags.filter((f) => f.status === "open");
     return {
       externalClaimId: c.externalClaimId,
@@ -58,14 +62,16 @@ export function computeCleanClaimRate(claims: StoredClaim[]) {
     };
   });
 
-  const claimsClean = drillDown.filter((r) => r.clean).length;
+  const claimsClean = allClaimsDrillDown.filter((r) => r.clean).length;
 
   return {
     cleanClaimRate: Math.round((claimsClean / claims.length) * 1000) / 10,
     claimsIngested: claims.length,
     claimsClean,
-    claimsWithOpenFlags: drillDown.filter((r) => r.flagsOpen > 0).length,
-    drillDown: drillDown.filter((r) => !r.clean),
+    claimsWithOpenFlags: allClaimsDrillDown.filter((r) => r.flagsOpen > 0).length,
+    drillDown: allClaimsDrillDown.filter((r) => !r.clean),
+    allClaimsDrillDown,
+    openFlagsDrillDown: allClaimsDrillDown.filter((r) => r.flagsOpen > 0),
   };
 }
 

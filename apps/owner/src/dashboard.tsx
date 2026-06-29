@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { useAuth, SignOutButton } from "@backstop/auth";
 import { callEdgeFunctionAuthed, formatEdgeError } from "@backstop/api-client";
 import { AppShell, Card, MetricTile } from "@backstop/ui";
+
+const HIGH_SEVERITIES = new Set(["high", "critical"]);
 
 interface KpiResponse {
   cleanClaimRate: number;
@@ -22,17 +25,70 @@ interface KpiResponse {
     topDenialReasons: string[];
     cdtCodesTracked: number;
   }>;
-  drillDown: Array<{
-    externalClaimId: string;
-    patientRef: string;
-    payerName: string;
-    flagsOpen: number;
-    clean: boolean;
-    lastEvent: string;
-  }>;
+  drillDown: DrillRow[];
+  openFlagsDrillDown?: DrillRow[];
+  allClaimsDrillDown?: DrillRow[];
 }
 
-type TileFilter = "all" | "dirty" | "denials";
+type DrillRow = {
+  externalClaimId: string;
+  patientRef: string;
+  payerName: string;
+  flagsOpen: number;
+  clean: boolean;
+  lastEvent: string;
+};
+
+type TileFilter = "below_target" | "open_flags" | "all_claims";
+
+async function loadClaimsDrillDown(supabase: SupabaseClient): Promise<DrillRow[]> {
+  const { data: claims, error: claimsError } = await supabase
+    .from("claims_current")
+    .select("id, external_claim_id, patient_ref, payer_name")
+    .order("external_claim_id");
+
+  if (claimsError || !claims?.length) {
+    return [];
+  }
+
+  const claimIds = claims.map((c) => c.id);
+  const { data: flags } = await supabase
+    .from("flags_open")
+    .select("claim_id, severity")
+    .in("claim_id", claimIds);
+
+  const flagsByClaim = new Map<string, string[]>();
+  for (const flag of flags ?? []) {
+    const list = flagsByClaim.get(flag.claim_id) ?? [];
+    list.push(flag.severity);
+    flagsByClaim.set(flag.claim_id, list);
+  }
+
+  return claims.map((claim) => {
+    const severities = flagsByClaim.get(claim.id) ?? [];
+    const clean = !severities.some((s) => HIGH_SEVERITIES.has(s));
+    return {
+      externalClaimId: claim.external_claim_id,
+      patientRef: claim.patient_ref,
+      payerName: claim.payer_name,
+      flagsOpen: severities.length,
+      clean,
+      lastEvent: severities.length > 0 ? "flag.raised" : "gate.passed",
+    };
+  });
+}
+
+function hydrateKpiDrillDown(kpi: KpiResponse, drillDown: DrillRow[]): KpiResponse {
+  if (drillDown.length === 0) {
+    return kpi;
+  }
+  return {
+    ...kpi,
+    allClaimsDrillDown: drillDown,
+    openFlagsDrillDown: drillDown.filter((r) => r.flagsOpen > 0),
+    drillDown: drillDown.filter((r) => !r.clean),
+  };
+}
 
 export function DashboardPage() {
   const { supabase, session, loading: authLoading } = useAuth();
@@ -42,7 +98,7 @@ export function DashboardPage() {
   const [uploadOk, setUploadOk] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<TileFilter>("dirty");
+  const [filter, setFilter] = useState<TileFilter>("open_flags");
 
   async function loadKpi() {
     try {
@@ -54,7 +110,15 @@ export function DashboardPage() {
       }
 
       setKpiError(null);
-      setKpi(await res.json());
+      const kpiData = (await res.json()) as KpiResponse;
+      const needsDrillDown =
+        !kpiData.allClaimsDrillDown?.length && (kpiData.claimsIngested ?? 0) > 0;
+      if (needsDrillDown) {
+        const drillDown = await loadClaimsDrillDown(supabase);
+        setKpi(hydrateKpiDrillDown(kpiData, drillDown));
+        return;
+      }
+      setKpi(kpiData);
     } catch (err) {
       setKpiError(err instanceof Error ? err.message : "Dashboard load failed");
     }
@@ -106,12 +170,20 @@ export function DashboardPage() {
 
   const tableRows = useMemo(() => {
     if (!kpi) return [];
-    if (filter === "dirty") return kpi.drillDown;
-    if (filter === "denials") {
-      return kpi.drillDown.filter((r) => r.lastEvent === "flag.raised");
+    if (filter === "below_target") {
+      return kpi.drillDown;
     }
-    return kpi.drillDown;
+    if (filter === "open_flags") {
+      return kpi.openFlagsDrillDown ?? kpi.drillDown.filter((r) => r.flagsOpen > 0);
+    }
+    return kpi.allClaimsDrillDown ?? kpi.drillDown;
   }, [kpi, filter]);
+
+  const filterLabels: Record<TileFilter, string> = {
+    open_flags: "Open flags",
+    below_target: "Below clean target",
+    all_claims: "All claims",
+  };
 
   return (
     <AppShell
@@ -144,32 +216,55 @@ export function DashboardPage() {
               value={`$${(kpi?.dollarsRecovered ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
               hint={`${kpi?.outcomesRecorded ?? 0} outcomes recorded`}
               tone="success"
-              onClick={() => setFilter("all")}
+              onClick={() => setFilter("all_claims")}
             />
             <MetricTile
               label="Clean-claim rate"
               value={`${kpi?.cleanClaimRate ?? 0}%`}
               hint={`${kpi?.claimsClean ?? 0} / ${kpi?.claimsIngested ?? 0} passed gate`}
               tone={(kpi?.cleanClaimRate ?? 0) >= 80 ? "success" : "warn"}
-              onClick={() => setFilter("dirty")}
+              onClick={() => setFilter("below_target")}
             />
             <MetricTile
               label="Denial rate"
               value={`${kpi?.denialRate ?? 0}%`}
               hint={`${kpi?.outcomesDenied ?? 0} denied of ${kpi?.outcomesRecorded ?? 0}`}
               tone={(kpi?.denialRate ?? 0) > 25 ? "danger" : "default"}
-              onClick={() => setFilter("denials")}
+              onClick={() => setFilter("open_flags")}
             />
           </div>
 
           <Card className="mt-8 overflow-hidden">
             <div className="border-b px-4 py-3">
-              <h2 className="font-medium text-[color:var(--bs-navy)]">
-                {filter === "dirty" ? "Claims below target" : "Drill-down"}
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {kpi?.claimsWithOpenFlags ?? 0} with open flags · tap a KPI tile to filter
-              </p>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="font-medium text-[color:var(--bs-navy)]">Claim drill-down</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {kpi?.claimsWithOpenFlags ?? 0} with open flags · includes SYN-CLM-002 & SYN-CLM-003
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2" role="tablist" aria-label="Drill-down filter">
+                  {(["open_flags", "below_target", "all_claims"] as const).map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      role="tab"
+                      aria-selected={filter === key}
+                      onClick={() => setFilter(key)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
+                        filter === key
+                          ? "bg-[color:var(--bs-navy)] text-white"
+                          : "border border-border bg-white text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {filterLabels[key]}
+                      {key === "open_flags" && kpi ? ` (${kpi.claimsWithOpenFlags})` : ""}
+                      {key === "below_target" && kpi ? ` (${kpi.drillDown.length})` : ""}
+                      {key === "all_claims" && kpi ? ` (${kpi.claimsIngested})` : ""}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             {tableRows.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">No rows for this filter.</p>
@@ -182,6 +277,7 @@ export function DashboardPage() {
                       <th className="px-4 py-2">Patient</th>
                       <th className="px-4 py-2">Payer</th>
                       <th className="px-4 py-2 text-right">Flags</th>
+                      <th className="px-4 py-2">Status</th>
                       <th className="px-4 py-2">Last event</th>
                     </tr>
                   </thead>
@@ -192,6 +288,13 @@ export function DashboardPage() {
                         <td className="px-4 py-2">{row.patientRef}</td>
                         <td className="px-4 py-2">{row.payerName}</td>
                         <td className="px-4 py-2 text-right tabular-nums">{row.flagsOpen}</td>
+                        <td className="px-4 py-2">
+                          {row.clean ? (
+                            <span className="text-[color:var(--bs-success)]">Clean</span>
+                          ) : (
+                            <span className="text-[color:var(--bs-warn)]">Below target</span>
+                          )}
+                        </td>
                         <td className="px-4 py-2 text-muted-foreground">{row.lastEvent}</td>
                       </tr>
                     ))}

@@ -6,6 +6,43 @@ import { fetchClaimDetail } from "@backstop/handlers/browser";
 import type { StoredClaim } from "@backstop/core";
 import { AppShell, Card, DenialRiskPanel, EligibilityPanel, FlagCard } from "@backstop/ui";
 
+type DenialRiskState = {
+  claimRiskScore: number;
+  lines: Array<{
+    lineIndex: number;
+    cdtCode: string;
+    riskScore: number;
+    denialRate: number;
+    reasons: string[];
+    recommendedFix: string;
+  }>;
+};
+
+function denialRiskFromFlags(
+  flags: StoredClaim["scrub"]["flags"],
+): DenialRiskState | null {
+  const denialFlags = flags.filter((f) => f.status === "open" && f.type === "denial_risk");
+  if (denialFlags.length === 0) return null;
+
+  const lines = denialFlags.map((flag) => {
+    const rateMatch = flag.reason.match(/denied \S+ (\d+(?:\.\d+)?)%/);
+    const denialRate = rateMatch ? Number(rateMatch[1]) : 0;
+    return {
+      lineIndex: flag.lineIndex >= 0 ? flag.lineIndex : 0,
+      cdtCode: flag.cdtCode,
+      riskScore: denialRate,
+      denialRate,
+      reasons: [flag.reason],
+      recommendedFix: flag.suggestedFix ?? "",
+    };
+  });
+
+  return {
+    claimRiskScore: Math.round(lines.reduce((sum, line) => sum + line.riskScore, 0) / lines.length),
+    lines,
+  };
+}
+
 export function ClaimDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -13,6 +50,7 @@ export function ClaimDetailPage() {
   const [claim, setClaim] = useState<StoredClaim | null>(null);
   const [loading, setLoading] = useState(true);
   const [agentLoading, setAgentLoading] = useState(false);
+  const [gateInFlight, setGateInFlight] = useState(false);
   const [eligibility, setEligibility] = useState<{
     active: boolean;
     annualMaxRemaining: number;
@@ -21,17 +59,7 @@ export function ClaimDetailPage() {
     alerts: Array<{ code: string; severity: "critical" | "high" | "medium" | "low"; message: string }>;
     checkedAt: string;
   } | null>(null);
-  const [denialRisk, setDenialRisk] = useState<{
-    claimRiskScore: number;
-    lines: Array<{
-      lineIndex: number;
-      cdtCode: string;
-      riskScore: number;
-      denialRate: number;
-      reasons: string[];
-      recommendedFix: string;
-    }>;
-  } | null>(null);
+  const [denialRisk, setDenialRisk] = useState<DenialRiskState | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -43,36 +71,25 @@ export function ClaimDetailPage() {
     load().finally(() => setLoading(false));
   }, [load]);
 
+  const agentsRan = useRef(false);
+  const agentsRunRef = useRef<Promise<void> | null>(null);
+
   const runAgents = useCallback(async () => {
     if (!claim) return;
     setAgentLoading(true);
     try {
       const procedureCodes = claim.lines.map((l) => l.cdtCode);
-      const [eligRes, predRes] = await Promise.all([
-        callEdgeFunctionAuthed(supabase, "check-eligibility", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patient_ref: claim.patientRef,
-            payer_name: claim.payerName,
-            external_claim_id: claim.externalClaimId,
-            procedure_codes: procedureCodes,
-          }),
+
+      const eligRes = await callEdgeFunctionAuthed(supabase, "check-eligibility", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patient_ref: claim.patientRef,
+          payer_name: claim.payerName,
+          external_claim_id: claim.externalClaimId,
+          procedure_codes: procedureCodes,
         }),
-        callEdgeFunctionAuthed(supabase, "predict-denial", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            external_claim_id: claim.externalClaimId,
-            payer_name: claim.payerName,
-            lines: claim.lines.map((line, lineIndex) => ({
-              line_index: lineIndex,
-              cdt_code: line.cdtCode,
-              fee_billed: line.feeBilled,
-            })),
-          }),
-        }),
-      ]);
+      });
 
       if (eligRes.ok) {
         const data = await eligRes.json();
@@ -85,6 +102,20 @@ export function ClaimDetailPage() {
           checkedAt: data.checked_at ?? new Date().toISOString(),
         });
       }
+
+      const predRes = await callEdgeFunctionAuthed(supabase, "predict-denial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          external_claim_id: claim.externalClaimId,
+          payer_name: claim.payerName,
+          lines: claim.lines.map((line, lineIndex) => ({
+            line_index: lineIndex,
+            cdt_code: line.cdtCode,
+            fee_billed: line.feeBilled,
+          })),
+        }),
+      });
 
       if (predRes.ok) {
         const data = await predRes.json();
@@ -101,6 +132,9 @@ export function ClaimDetailPage() {
               }))
             : [],
         });
+      } else {
+        const err = await predRes.json().catch(() => ({}));
+        console.warn("predict-denial:", formatEdgeError(predRes.status, err));
       }
 
       await load();
@@ -109,18 +143,27 @@ export function ClaimDetailPage() {
     }
   }, [claim, load, supabase]);
 
-  const agentsRan = useRef(false);
-
   useEffect(() => {
     if (!claim || agentsRan.current) return;
     agentsRan.current = true;
-    void runAgents();
+    const run = runAgents();
+    agentsRunRef.current = run;
+    void run.finally(() => {
+      agentsRunRef.current = null;
+    });
   }, [claim?.externalClaimId, runAgents]);
+
+  const flagActionsDisabled = agentLoading || gateInFlight;
 
   const openFlags = useMemo(
     () => claim?.scrub.flags.filter((f) => f.status === "open") ?? [],
     [claim],
   );
+
+  const denialRiskView = useMemo(() => {
+    if (denialRisk && denialRisk.lines.length > 0) return denialRisk;
+    return denialRiskFromFlags(openFlags) ?? denialRisk ?? { claimRiskScore: 0, lines: [] };
+  }, [denialRisk, openFlags]);
 
   const resolvedFlags = useMemo(
     () => claim?.scrub.flags.filter((f) => f.status !== "open") ?? [],
@@ -133,18 +176,30 @@ export function ClaimDetailPage() {
   }, [openFlags]);
 
   async function gate(flagId: string, action: "approve" | "override", reason?: string) {
-    const res = await callEdgeFunctionAuthed(supabase, "gate-action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ flag_id: flagId, action, reason }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      alert(formatEdgeError(res.status, err));
-      return;
+    if (agentsRunRef.current) {
+      await agentsRunRef.current;
     }
-    await load();
+
+    setGateInFlight(true);
+    try {
+      const res = await callEdgeFunctionAuthed(supabase, "gate-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ flag_id: flagId, action, reason }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(formatEdgeError(res.status, err));
+        return;
+      }
+
+      await load();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Could not update flag.");
+    } finally {
+      setGateInFlight(false);
+    }
   }
 
   if (loading) {
@@ -225,9 +280,9 @@ export function ClaimDetailPage() {
           onRecheck={runAgents}
         />
         <DenialRiskPanel
-          claimRiskScore={denialRisk?.claimRiskScore ?? 0}
-          lines={denialRisk?.lines ?? []}
-          loading={agentLoading && !denialRisk}
+          claimRiskScore={denialRiskView.claimRiskScore}
+          lines={denialRiskView.lines}
+          loading={agentLoading && denialRiskView.lines.length === 0}
           onRescore={runAgents}
         />
       </div>
@@ -246,6 +301,9 @@ export function ClaimDetailPage() {
       )}
 
       <div className="mt-6 space-y-3">
+        {gateInFlight && (
+          <p className="text-sm text-muted-foreground">Updating flag…</p>
+        )}
         {openFlags
           .sort((a, b) => {
             const rank = { critical: 4, high: 3, medium: 2, low: 1 };
@@ -255,6 +313,7 @@ export function ClaimDetailPage() {
             <FlagCard
               key={flag.id}
               flag={flag}
+              actionsDisabled={flagActionsDisabled}
               onApprove={(flagId) => gate(flagId, "approve")}
               onFix={(flagId) => gate(flagId, "approve")}
               onOverride={(flagId, reason) => gate(flagId, "override", reason)}

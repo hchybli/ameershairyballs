@@ -1,6 +1,6 @@
 import { readPayerIntelligence } from "@backstop/intelligence";
 import type { BackstopServiceClient } from "@backstop/db";
-import { predictionScoredDedupeKey, replay } from "@backstop/events";
+import { predictionScoredDedupeKey } from "@backstop/events";
 import { emitEventTool, raiseFlagTool, type ToolContext } from "@backstop/tools";
 import { scoreDenialRisk } from "./scorer.ts";
 
@@ -36,7 +36,15 @@ export async function runDenialPredictionAgent(
       external_claim_id: input.externalClaimId,
       payer_name: input.payerName,
       claim_risk_score: scored.claimRiskScore,
-      lines: scored.lines,
+      lines: scored.lines.map((line) => ({
+        line_index: line.lineIndex,
+        cdt_code: line.cdtCode,
+        risk_score: line.riskScore,
+        denial_rate: line.denialRate,
+        sample_size: line.sampleSize,
+        reasons: line.reasons,
+        recommended_fix: line.recommendedFix,
+      })),
       scored_at: checkedAt,
     },
   });
@@ -59,8 +67,6 @@ export async function runDenialPredictionAgent(
       flagsRaised += 1;
     }
   }
-
-  await replay(db);
 
   return {
     ...scored,
