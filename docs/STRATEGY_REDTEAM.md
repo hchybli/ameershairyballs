@@ -21,4 +21,4 @@ Next scheduled red-team: **orchestrated session 3** (when the counter above reac
 **Challenge 3:** Synthetic seed vs pulling forward Vyne/InsideDesk history import for warm moat?  
 **Verdict:** **Accepted-and-watching** — Phase 1 chain uses synthetic only in repo. User evaluating what Vyne exports would help; aggregate payer stats rated ~7/10 for moat warmth (see chat 2026-06-29).
 
-**Actions:** None to OPEN_QUESTIONS yet; eligibility adapter decision blocks WS-AGENTS-01 adapter finalization only.
+**Actions:** WS-AGENTS-01/02 shipped on feature branch; merge PR to `main`.

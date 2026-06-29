@@ -8,17 +8,14 @@ alwaysApply: true
 All-in-one dental insurance billing platform. Event-sourced, multi-tenant, synthetic data only until HIPAA BAAs.
 
 **Read before coding:**
+- `docs/STATUS.md`
+- `docs/LOCAL_DEV.md`
 - `docs/BUILD_READINESS.md`
-- `docs/HANDOFF_BUNGAROO.md`
-- `docs/architecture/ARCHITECTURE.md`
-- `docs/architecture/PHASE_1_SLICE.md`
-- `docs/architecture/USER_FLOWS.md`
-- `docs/architecture/MEDIUM_BUILD.md`
 - `docs/architecture/WORKSTREAMS.md`
 
 ## STACK (actual today → target)
 
-- **Today:** npm workspaces + TypeScript strict; Vite React SPAs (`apps/operator`, `apps/owner`); Supabase (Postgres, Auth, Edge Functions, RLS) live for WS-01–05; synthetic seed + integration tests
+- **Today:** npm workspaces; Vite React SPAs; Supabase (7 edge functions, RLS); Phase 1 + agent fleet shipped
 - **Target (locked):** Turborepo + pnpm when WS-00 completes; AWS Lambda/Fargate for heavy workers (Phase 2+); Anthropic Sonnet (judgment) + Haiku (extraction)
 - **NOT for new code:** Next.js in `src/` (legacy reference only)
 
@@ -38,7 +35,7 @@ All-in-one dental insurance billing platform. Event-sourced, multi-tenant, synth
 - Real PHI in repo
 - Secrets in git
 - New features in legacy `src/` Next.js app
-- Build ahead of Phase 1 slice (no Jarvis, Dentrix API, clearinghouse, payments)
+- Build ahead of [PHASE_1_SLICE.md](../docs/architecture/PHASE_1_SLICE.md) out-of-scope items (Jarvis, Dentrix API, clearinghouse submit, payments, PMS modules)
 - PMS features (charting, scheduling, etc.)
 
 ## Before implementing
@@ -67,7 +64,7 @@ State workstream ID (WS-XX) and link acceptance criteria from WORKSTREAMS.md.
 
 Supabase's **remote** bundler does **not** honor Deno `sloppy-imports`. Relative imports in edge-reachable packages (`core`, `agents`, `integrations`, `events`, `db`, `analytics`, `handlers`, `intelligence`) **must** use explicit `.ts` extensions (e.g. `from "./types.ts"`). Apps-only packages (`ui`, `auth` React) stay extensionless. App tsconfigs set `allowImportingTsExtensions: true` for tsc.
 
-- After editing any edge package, run `npm run check:edge` — it fails on extensionless relative imports and runs `deno check` on all 5 functions without sloppy-imports.
+- After editing any edge package, run `npm run check:edge` — validates all **7** functions.
 - Auto-fix drift: `npm run fix:edge-imports`
 - `@backstop/*` bare imports resolve via `supabase/functions/deno.json` import map (with `.ts` entry paths).
 - **Never** rely on `unstable sloppy-imports` for deploy — local-only trap.

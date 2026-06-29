@@ -1,42 +1,39 @@
-# Build readiness — pre-implementation checklist
+# Build readiness — Phase 1 checklist
 
-**Purpose:** Checklist for Phase 1 delivery. Backend spine (WS-01–05) is **complete**; UI + intelligence next.  
-**Last updated:** 2026-06-28  
-**Strategy:** [STRATEGY.md](./STRATEGY.md) · **Status:** [STATUS.md](./STATUS.md)
+**Purpose:** Locked decisions and verification gates for Phase 1.  
+**Last updated:** 2026-06-29  
+**Living status:** [STATUS.md](./STATUS.md)
 
 ---
 
-## Doc system (complete)
+## Phase 1 spine — complete
 
-| Item | Doc | Status |
-|------|-----|--------|
-| Offshore onboarding | [HANDOFF_BUNGAROO.md](./HANDOFF_BUNGAROO.md) | Done |
-| Platform architecture | [architecture/ARCHITECTURE.md](./architecture/ARCHITECTURE.md) | Done |
-| Phase 1 scope | [architecture/PHASE_1_SLICE.md](./architecture/PHASE_1_SLICE.md) | Done |
-| Workstreams WS-00–09 | [architecture/WORKSTREAMS.md](./architecture/WORKSTREAMS.md) | Done |
-| Events + APIs + schema | EVENT_CATALOG, API_CONTRACTS, DATA_MODEL | Done |
-| UX flows (Vyne/InsideDesk) | [architecture/USER_FLOWS.md](./architecture/USER_FLOWS.md) | Done |
-| Screen build spec | [architecture/MEDIUM_BUILD.md](./architecture/MEDIUM_BUILD.md) | Done |
-| Legacy port map | [architecture/LEGACY_REFERENCE.md](./architecture/LEGACY_REFERENCE.md) | Done |
-| Doc maintenance rules | [DOC_MAINTENANCE.md](./DOC_MAINTENANCE.md) | Done |
-| Living status | [STATUS.md](./STATUS.md) | Done |
-| Domain research | [research/](./research/README.md) | Starter pack done |
+| Workstream | Status |
+|------------|--------|
+| WS-01 DB + RLS + seed | Done |
+| WS-02 Events spine | Done |
+| WS-03 CSV adapters | Done |
+| WS-04 Scrub agent | Done |
+| WS-05 Edge Functions (7) | Done |
+| WS-06 Operator app | Done |
+| WS-07 Intelligence + analytics | Done |
+| WS-08 Owner app | Done |
+| WS-AGENTS-00→02 Agent fleet | Done (PR pending merge) |
 
 ---
 
 ## UX decisions (locked)
 
-From competitive review ([USER_FLOWS.md](./architecture/USER_FLOWS.md)):
+From [USER_FLOWS.md](./architecture/USER_FLOWS.md):
 
 | Decision | Choice |
 |----------|--------|
 | Operator default home | Work queue (`/`) |
-| Claim detail layout | Single action view — flag cards, no entity tabs |
-| Upload placement | Secondary route `/upload` |
-| Owner dashboard | One KPI — clean-claim rate + drill-down |
-| Override | Reason required (audit) |
-| Queue density | ≥10 rows at 1080p |
-| Phase 1 submit/resend | Out of scope — gate only |
+| Claim detail | Single action view — flag cards, agent panels, no entity tabs |
+| Upload | Secondary route `/upload` |
+| Owner dashboard | Clean-claim rate KPI + drill-down filters |
+| Override | Reason required |
+| Phase 1 submit | Out of scope — gate only |
 
 ---
 
@@ -44,74 +41,45 @@ From competitive review ([USER_FLOWS.md](./architecture/USER_FLOWS.md)):
 
 | Decision | Choice |
 |----------|--------|
-| Monorepo | **npm workspaces today** → Turborepo + pnpm (WS-00) |
-| Frontend | Vite React SPA (not Next.js for new code) |
+| Monorepo | **npm workspaces** (Turborepo + pnpm = WS-00, not started) |
+| Frontend | Vite React SPA — not Next.js for new code |
 | Backend | Supabase Postgres + Auth + Edge Functions + RLS |
-| State | Append-only events + projectors (CQRS-lite) |
-| Phase 1 KPI | Clean-claim rate |
-| Scrub pipeline | Rules → payer_intelligence → Sonnet (ambiguous only) |
+| State | Append-only events + projectors |
+| Scrub | Rules → payer_intelligence → Sonnet (ambiguous only) |
+| Eligibility (Phase 1) | Synthetic Onederful-shaped adapter; live Vyne later |
+| Denial prediction | Moat-first from `payer_intelligence`; LLM for reason text only |
 | Apps | `apps/operator` + `apps/owner` |
-| Legacy `src/` | Port and retire — do not extend |
+| Legacy `src/` | Do not extend |
 
 ---
 
-## Build order (current)
+## Verification (run before every merge)
 
-```
-Done — Phase A spine
-  WS-01  DB + RLS + seed
-  WS-02  packages/events
-  WS-03  packages/integrations (CSV adapters)
-  WS-04  packages/agents (scrub rules)
-  WS-05  Edge Functions
-
-Next — Phase B/C
-  WS-06  apps/operator + packages/ui
-  WS-08  apps/owner (KPI command center)
-  WS-07  packages/intelligence (moat)
-  WS-00  Turborepo + pnpm (can parallelize)
-  WS-09  E2E demo + legacy retirement
+```bash
+npm run verify
 ```
 
----
-
-## US team — still needed before production
-
-| Item | Blocks | Owner |
-|------|--------|-------|
-| Design partner clinic | Real Dentrix CSV column validation | US |
-| Supabase dev project + env vars | Bungaroo local dev | US |
-| Anthropic API key (dev) | LLM scrub in dev | US |
-| Submit vs hand-back decision | Phase 4 scope only — not P1 | US |
-| Payer rule sign-off | WS-04 review | US |
-| Project name / repo rename | Branding only | US |
-
-Track in [OPEN_QUESTIONS.md](./OPEN_QUESTIONS.md).
+Includes: edge import check, build, unit tests, smoke (handlers + RLS), click-through.
 
 ---
 
-## Verification before WS-06 UI
+## Still open (production, not Phase 1 build)
 
-- [ ] WS-05 Edge Functions pass integration tests
-- [ ] Sample CSV produces same flags as legacy (`npm test` in agents package)
-- [ ] `gate-action` rejects override without reason
-- [ ] Bungaroo read HANDOFF + USER_FLOWS + MEDIUM_BUILD
+| Item | Doc |
+|------|-----|
+| Project name, pricing, design partner | [OPEN_QUESTIONS.md](./OPEN_QUESTIONS.md) |
+| Submit vs hand-back (Phase 4) | [OPEN_QUESTIONS.md](./OPEN_QUESTIONS.md) |
+| Payer rule sign-off | [research/PAYER_RULES_V1.md](./research/PAYER_RULES_V1.md) |
+| Real Dentrix column validation | Design partner clinic |
 
 ---
 
-## First PR template (WS-00)
+## Optional next workstreams
 
-```markdown
-## Workstream
-WS-00 — Monorepo foundation
+| ID | What |
+|----|------|
+| WS-09 | E2E demo script + legacy retirement |
+| WS-00 | Turborepo + pnpm |
+| history.imported | Warm moat from de-identified Vyne exports |
 
-## Acceptance
-- [ ] pnpm build passes
-- [ ] CI green
-- [ ] LOCAL_DEV.md updated
-
-## Docs
-- [ ] STATUS.md updated
-```
-
-See [DOC_MAINTENANCE.md](./DOC_MAINTENANCE.md) for full PR checklist.
+See [PARALLEL_WORK.md](../PARALLEL_WORK.md) for independent branches.

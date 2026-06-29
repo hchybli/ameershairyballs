@@ -1,11 +1,13 @@
 # Workstreams — Bungaroo Phase 1
 
-Each workstream = 1 epic ≈ 1–3 PRs. Link PRs as `WS-XX` in title.
+Each workstream = 1 epic ≈ 1–3 PRs. Link PRs as `WS-XX` in title.  
+**Completion tracked in** [STATUS.md](../STATUS.md).
 
 ---
 
 ## WS-00 — Monorepo foundation
 
+**Status:** not started  
 **Owner:** Bungaroo lead  
 **Depends on:** —
 
@@ -13,179 +15,240 @@ Each workstream = 1 epic ≈ 1–3 PRs. Link PRs as `WS-XX` in title.
 - [ ] Init Turborepo + pnpm workspaces at repo root
 - [ ] Shared `tsconfig` base, ESLint, Prettier
 - [ ] CI: `turbo run build lint test` on PR
-- [ ] `.env.example` for all apps/packages
 - [ ] Document `pnpm install && pnpm dev` in `docs/LOCAL_DEV.md`
 
 ### Acceptance
-- `pnpm build` passes with empty package stubs
+- `pnpm build` passes
 - CI green on `main`
 
 ---
 
 ## WS-01 — Database + RLS + seed
 
+**Status:** done  
 **Owner:** Bungaroo backend  
-**Depends on:** WS-00
+**Depends on:** —
 
 ### Tasks
-- [ ] Apply `supabase/migrations/002_event_sourced_schema.sql`
-- [ ] RLS policies: tenant A cannot read tenant B (test with 2 tenants)
-- [ ] `scripts/seed-synthetic.ts` — fake tenant, clinic, claims fixture paths
-- [ ] Generate TypeScript types (`supabase gen types`)
+- [x] Apply event-sourced schema migrations (002–006)
+- [x] RLS: tenant + clinic isolation
+- [x] `scripts/seed-synthetic.ts` — idempotent synthetic seed
+- [x] RLS integration tests
 
 ### Acceptance
-- Migration idempotent on fresh DB
-- RLS test script or documented manual test
-- Seed runs without real PHI
+- [x] Migration idempotent on fresh DB
+- [x] RLS tests pass
+- [x] Seed runs without real PHI
 
 ---
 
 ## WS-02 — Events spine (`packages/events`)
 
-**Owner:** Bungaroo backend  
+**Status:** done  
 **Depends on:** WS-01
 
 ### Tasks
-- [ ] Event types per [EVENT_CATALOG.md](./EVENT_CATALOG.md)
-- [ ] `emitEvent(tenantId, type, payload, actorId?)`
-- [ ] Projectors: `claims_current`, `flags_open`
-- [ ] `replayEvents(claimId)` for audit UI later
+- [x] Event types per [EVENT_CATALOG.md](./EVENT_CATALOG.md)
+- [x] `emit()` with dedupe keys
+- [x] Projectors: `claims_current`, `flags_open`, eligibility, prediction
+- [x] `replay()` for read models
 
 ### Acceptance
-- Unit tests: emit → project → read model matches expected state
-- Append-only enforced (no UPDATE on events)
+- [x] Unit tests: emit → project → read model
+- [x] Append-only enforced
 
 ---
 
-## WS-03 — Core + integrations (`packages/core`, `packages/integrations`)
+## WS-03 — Core + integrations
 
-**Owner:** Bungaroo backend  
-**Depends on:** WS-00
+**Status:** done  
+**Depends on:** —
 
 ### Tasks
-- [ ] Canonical claim model in `packages/core`
-- [ ] Port `parse-claims-csv.ts` → `CsvDentrixIngestAdapter`
-- [ ] Port `parse-outcomes-csv.ts` → `Csv835OutcomeAdapter`
-- [ ] Port unit tests
+- [x] Canonical claim model in `packages/core`
+- [x] CSV claims + outcomes adapters
+- [x] Unit tests
 
 ### Acceptance
-- Same synthetic CSVs parse identically to legacy
-- Adapter implements `IngestAdapter` interface
+- [x] Synthetic CSVs parse identically to legacy
 
 ---
 
-## WS-04 — Scrub agent (`packages/agents`, `packages/tools`)
+## WS-04 — Scrub agent
 
-**Owner:** Bungaroo backend + US review for rules  
+**Status:** done  
 **Depends on:** WS-02, WS-03
 
 ### Tasks
-- [ ] Port rules from `src/lib/rules/` (cdt-catalog, attachment-rules, scrub-claim)
-- [ ] `tools/query-claims`, `tools/emit-flag`, `tools/query-payer-intelligence`
-- [ ] Sonnet integration for ambiguous lines only (config flag to disable LLM in CI)
-- [ ] Orchestrator: rules → intel → LLM → emit events
+- [x] Port rules from `src/lib/rules/`
+- [x] `@backstop/tools` — query-claims, raise-flag, query-payer-intelligence
+- [ ] Sonnet for ambiguous lines only (rules-only mode in CI today)
 
 ### Acceptance
-- All legacy scrub tests pass in new package
-- Agent never writes to DB except via `emitEvent`
-- CI runs without Anthropic key (rules-only mode)
+- [x] Legacy scrub tests pass
+- [x] Agent emits via events only
 
 ---
 
-## WS-05 — Edge Functions (`supabase/functions`)
+## WS-05 — Edge Functions
 
-**Owner:** Bungaroo backend  
+**Status:** done  
 **Depends on:** WS-02, WS-03, WS-04
 
 ### Tasks
-- [ ] `ingest-claims` — CSV upload → canonical → `claim.ingested`
-- [ ] `run-scrub` — invoke agent → `flag.raised`
-- [ ] `gate-action` — approve/override → events (override requires reason)
-- [ ] `ingest-outcomes` — 835 CSV → `outcome.received` + intelligence upsert
-- [ ] `analytics-kpi` — clean-claim rate + drill-down
+- [x] `ingest-claims`
+- [x] `run-scrub`
+- [x] `gate-action`
+- [x] `ingest-outcomes`
+- [x] `analytics-kpi`
+- [x] `check-eligibility`
+- [x] `predict-denial`
 
 See [API_CONTRACTS.md](./API_CONTRACTS.md).
 
 ### Acceptance
-- Each function has integration test against local Supabase
-- Auth: JWT carries `tenant_id`
+- [x] Smoke + click-through tests against live Supabase
+- [x] Auth: JWT carries `tenant_id`
 
 ---
 
-## WS-06 — Operator app (`apps/operator`)
+## WS-06 — Operator app
 
-**Owner:** Bungaroo frontend  
+**Status:** done  
 **Depends on:** WS-05, `packages/ui`  
 **UX spec:** [USER_FLOWS.md](./USER_FLOWS.md)
 
 ### Tasks
-- [ ] Vite + React + Tailwind + shadcn
-- [ ] **Work queue** as default route `/` (compact rows: patient, payer, DOS, $, top flag, severity)
-- [ ] **Claim action view** `/claims/:id` — flag cards, header primary blocker, no entity tabs
-- [ ] Upload CSV at `/upload` (secondary); post-upload redirect to queue
-- [ ] Approve / Override (modal with required reason)
-- [ ] Mobile-first layout (≥44px touch targets on gate actions)
+- [x] Vite + React + Tailwind + `@backstop/ui`
+- [x] Work queue default route `/`
+- [x] Claim action view `/claims/:id` — flags + agent panels
+- [x] Upload CSV at `/upload`
+- [x] Approve / Override (reason required)
 
 ### Acceptance
-- E2E: upload sample-claims → queue shows claims → open claim → approve one → event in DB
-- Matches legacy flag semantics
-- Default landing is work queue, not upload
-- All open flags visible without tab navigation
-- ≥10 queue rows visible at 1080p
+- [x] E2E: upload → queue → claim → approve
+- [x] Work queue default landing
 
 ---
 
-## WS-07 — Intelligence + analytics (`packages/intelligence`, `packages/analytics`)
+## WS-07 — Intelligence + analytics
 
-**Owner:** Bungaroo backend  
+**Status:** done  
 **Depends on:** WS-02, WS-05
 
 ### Tasks
-- [ ] On `outcome.received`: upsert `payer_intelligence`
-- [ ] `computeCleanClaimRate(tenantId, dateRange?)`
-- [ ] Drill-down: KPI → claim IDs → events
+- [x] On `outcome.received`: upsert `payer_intelligence`
+- [x] `computeCleanClaimRate` + drill-down bundles
+- [x] Payer scorecards on owner dashboard
 
 ### Acceptance
-- Seed outcomes change KPI predictably
-- Unit tests for KPI math
+- [x] Seed outcomes change KPI predictably
+- [x] Unit tests for KPI math
 
 ---
 
-## WS-08 — Owner app (`apps/owner`)
+## WS-08 — Owner app
 
-**Owner:** Bungaroo frontend  
+**Status:** done  
 **Depends on:** WS-07, `packages/ui`  
 **UX spec:** [USER_FLOWS.md](./USER_FLOWS.md)
 
 ### Tasks
-- [ ] KPI tile (live from API) — **single metric**, clean-claim rate
-- [ ] Drill-down table → claim ids (+ optional link to operator claim view)
-- [ ] Shared auth with operator app
-- [ ] No empty placeholder charts or module tabs (IQ/Assist split)
+- [x] KPI tiles (clean-claim rate, denial rate, dollars recovered)
+- [x] Drill-down with filters (open flags / below target / all claims)
+- [x] Shared auth with operator
+- [x] Outcomes upload on dashboard
 
 ### Acceptance
-- After full seed flow, KPI displays correct %
-- Click row → see claim id (detail page optional P1)
-- Dashboard is one screen: KPI + drill-down only
+- [x] KPI matches `analytics-kpi` API
+- [x] No placeholder module tabs
 
 ---
 
-## WS-09 — E2E + legacy retirement (optional in P1)
+## WS-09 — E2E + legacy retirement
 
-**Owner:** Bungaroo lead  
+**Status:** not started  
 **Depends on:** WS-06, WS-08
 
 ### Tasks
 - [ ] `scripts/demo-e2e.sh` documents full loop
-- [ ] Mark `src/` deprecated in README
+- [ ] Mark `src/` deprecated in README (root README done)
 - [ ] Remove or archive Next.js app after US sign-off
 
 ---
 
-## Workstream dependency graph
+## WS-AGENTS-00 — Agent framework
+
+**Status:** done  
+**Depends on:** WS-04
+
+### Tasks
+- [x] `@backstop/tools` registry + contracts
+- [x] `AgentRunner` orchestration pattern
+- [x] Scrub agent refactored to tool-based emit
+
+### Acceptance
+- [x] Agents never write DB directly
+- [x] Tool contract tests pass
+
+---
+
+## WS-AGENTS-01 — Eligibility agent
+
+**Status:** done  
+**Depends on:** WS-AGENTS-00
+
+### Tasks
+- [x] Synthetic Onederful-shaped adapter + fixtures
+- [x] `eligibility.checked` event + `eligibility_current` read model
+- [x] `check-eligibility` edge function
+- [x] `EligibilityPanel` on claim detail
+
+### Acceptance
+- [x] SYN-PAT-003 / Cigna shows benefit exhausted in UI
+- [x] Migration 005 applied
+
+---
+
+## WS-AGENTS-02 — Denial prediction
+
+**Status:** done  
+**Depends on:** WS-AGENTS-00, WS-07
+
+### Tasks
+- [x] Moat-first `scoreDenialRisk()` from `payer_intelligence`
+- [x] `prediction.scored` event + `denial_risk` flags
+- [x] `predict-denial` edge function
+- [x] `DenialRiskPanel` on claim detail
+
+### Acceptance
+- [x] SYN-CLM-002 shows high denial risk for D4341
+- [x] Migration 006 applied
+
+---
+
+## WS-AGENTS-03 — History import (future)
+
+**Status:** not started  
+**Depends on:** WS-07
+
+### Tasks
+- [ ] `history.imported` event from de-identified Vyne/InsideDesk exports
+- [ ] Warm-start `payer_intelligence` without PHI in repo
+
+### Acceptance
+- [ ] Import is idempotent per tenant
+- [ ] No PHI in git
+
+---
+
+## Dependency graph
 
 ```
-WS-00 ─┬─ WS-01 ─ WS-02 ─ WS-04 ─ WS-05 ─┬─ WS-06
-       │         └─ WS-03 ──────────────┘   └─ WS-07 ─ WS-08
-       └─ packages/ui (parallel)
+WS-01 ─ WS-02 ─ WS-04 ─ WS-05 ─┬─ WS-06
+         └─ WS-03 ─────────────┘  └─ WS-07 ─ WS-08
+                                    └─ WS-AGENTS-00 ─┬─ WS-AGENTS-01
+                                                       └─ WS-AGENTS-02
+WS-00 (Turborepo) — parallel, optional
+WS-09 — after merge to main
 ```

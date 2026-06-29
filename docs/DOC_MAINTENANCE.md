@@ -78,18 +78,9 @@ Update at **start** and **end** of every workstream PR.
 
 ---
 
-## Legacy docs
+## Legacy / archived docs
 
 | File | Status |
 |------|--------|
-| `PHASE_0.md` | Archived → points to LOCAL_DEV |
-| `DEMO_WALKTHROUGH.md` | Legacy Next.js demo; update or archive when monorepo E2E replaces it |
-| `FEATURE_ROADMAP.md` | Product history; build truth is `architecture/` + `BUILD_READINESS.md` |
-
----
-
-## Canvas (visual build preview)
-
-[backstop-phase1-build.canvas.tsx](/Users/ameerabouhouli/.cursor/projects/Users-ameerabouhouli-ameershairyballs-ameershairyballs/canvases/backstop-phase1-build.canvas.tsx) — open beside chat for UI preview.
-
-Update canvas when Operator or Owner screens change materially.
+| [archive/](./archive/README.md) | Obsolete Cursor prompts, Phase 0 onboarding, legacy Next.js demo |
+| [FEATURE_ROADMAP.md](./FEATURE_ROADMAP.md) | Product history — build truth is `STATUS.md` + `architecture/` |

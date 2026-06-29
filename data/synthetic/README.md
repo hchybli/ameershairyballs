@@ -12,6 +12,7 @@
 | `sample-outcomes-lakeside.csv` | Lakeside Dental | outcomes for Lakeside claims |
 | `sample-claims-isolation.csv` | Ridge Dental (Tenant B) | SYN-CLM-ISO-001 |
 | `sample-outcomes-isolation.csv` | Ridge Dental | outcome for isolation claim |
+| `eligibility-onederful-v2.json` | Sunrise | Onederful-shaped eligibility fixtures (WS-AGENTS-01) |
 
 ## Seed shape (`npm run seed`)
 

@@ -1,40 +1,35 @@
 # Hey @hchybli — review when you can
 
 **From:** @ameerabouhouli  
-**Date:** 2026-06-26  
-**Branch:** `main`
+**Updated:** 2026-06-29
 
----
+Phase 1 vertical slice + agent fleet are on branch `feature/bungaroo/WS-AGENTS-02-denial-prediction` (PR pending merge to `main`).
 
-Phases **1–2** are on `main`. This is a rough draft for you to pull, run locally, and give feedback on.
-
-## Pull & run (5 minutes)
+## Pull & run
 
 ```bash
-git pull origin main
+git pull
 npm install
+npm run seed
 npm run dev
+npx tsx --env-file=.env scripts/dev-sign-in.ts
 ```
 
-Then follow **[DEMO_WALKTHROUGH.md](../DEMO_WALKTHROUGH.md)**:
+| App | URL | Login |
+|-----|-----|-------|
+| Operator | http://localhost:5173 | `operator@demo.backstop.local` / `demo-operator-2026!` |
+| Owner | http://localhost:5174 | `owner@demo.backstop.local` / `demo-owner-2026!` |
 
-1. **/** — upload `data/synthetic/sample-claims.csv` → **Ingest & check claims** (see flags)
-2. **/dashboard** — upload `data/synthetic/sample-outcomes.csv` → **Record outcomes** (see metrics)
+Full guide: [LOCAL_DEV.md](../LOCAL_DEV.md)
 
-```bash
-npm test   # optional — 8 tests
-```
+## What to try
 
-## What to look at
+1. **Operator** — open **SYN-CLM-003** → eligibility panel (benefit exhausted) + denial risk + approve flags
+2. **Owner** — drill-down filters (Open flags / All claims); upload outcomes CSV
+3. `npm run verify` — full automated check
 
-- Do the **flags** make sense for a front-desk person? (audit-risk, missing attachments, fee leakage)
-- Is the **dashboard** useful? ($ flagged, denial rate, $ recovered)
-- Read **[FEATURE_ROADMAP.md](../FEATURE_ROADMAP.md)** — comment on the **Decisions** table (submit vs hand-back, v1 payers)
+## Open decisions
 
-## Reply when done
-
-Comment on GitHub, in chat, or add `docs/collaborators/hchybli-review.md` with your notes.
-
-**No need to fix code yet** — just your take on direction before we start Phase 3.
+[OPEN_QUESTIONS.md](../OPEN_QUESTIONS.md) — submit vs hand-back, v1 payer sign-off, design partner.
 
 — Ameer

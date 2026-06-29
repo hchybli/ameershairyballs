@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md
 
-> **Working name:** `Backstop` (placeholder — replace)
-> **Status:** pre-build / spec. No real PHI in repo yet.
-> This doc is the source of truth. Keep it current.
+> **Working name:** `Backstop` (placeholder — replace)  
+> **Status:** Phase 1 vertical slice shipped — see [docs/STATUS.md](docs/STATUS.md)  
+> **Strategy:** [docs/STRATEGY.md](docs/STRATEGY.md) · [docs/COMPETITIVE_BRIEF.md](docs/COMPETITIVE_BRIEF.md)
 
 ---
 
@@ -168,9 +168,4 @@ NEVER:
 
 ## Open questions
 
-- [ ] Real project name (replace `Backstop`).
-- [ ] Stack sign-off.
-- [ ] Submit ourselves vs. hand clean claim back.
-- [ ] Which auto-fixes are safe without a human.
-- [ ] Pricing — flat monthly + performance kicker: numbers.
-- [ ] First clinic to build against.
+See [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) — do not duplicate here.

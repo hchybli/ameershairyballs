@@ -1,29 +1,29 @@
 # Open questions
 
-Product and business decisions. **Build-blocking decisions** live in [FEATURE_ROADMAP.md](./FEATURE_ROADMAP.md#decisions-resolve-before-phase-1) — check there first.
+Business and product decisions **not yet locked**. Build truth is [STATUS.md](./STATUS.md) + [BUILD_READINESS.md](./BUILD_READINESS.md).
 
-**Does not block WS-00–WS-05** (backend spine). Blocks production and design-partner validation.
+| # | Question | Status |
+|---|----------|--------|
+| 1 | Real project name (replace "Backstop") | Open |
+| 2 | Pricing — flat monthly + performance kicker | Open |
+| 3 | First clinic / design partner (real Dentrix CSV) | Open |
+| 4 | GitHub repo rename (`ameershairyballs`) | Open |
+| 5 | Submit claims ourselves vs hand clean claim back | Open — **Phase 4**; gate-only for Phase 1 |
+| 6 | Which auto-fixes are safe without human approval | Open — US review |
+| 7 | v1 payer rule packs sign-off (Delta, MetLife, Cigna) | Open — see [research/PAYER_RULES_V1.md](./research/PAYER_RULES_V1.md) |
 
-| # | Question | Status | Decision |
-|---|----------|--------|----------|
-| 1 | Real project name (replace "Backstop") | Open | |
-| 2 | Stack sign-off (Turborepo, Supabase, Vite, Anthropic) | **Decided** | Locked in ARCHITECTURE.md + BUILD_READINESS.md |
-| 3 | Operator UX (queue-first vs upload-first) | **Decided** | Work queue default — USER_FLOWS.md |
-| 4 | Phase 1 KPI | **Decided** | Clean-claim rate — PHASE_1_SLICE.md |
-| 5 | Pricing — flat monthly + performance kicker | Open | |
-| 6 | First clinic to build against (design partner) | Open | Blocks real Dentrix CSV mapping |
-| 7 | Who scaffolds / owns each phase | Open | Bungaroo = implementation; US = product review |
-| 8 | GitHub repo name (`ameershairyballs` → rename?) | Open | |
-| 9 | Two apps vs one app with routes | **Decided** | Two apps (`operator`, `owner`) — PHASE_1_SLICE.md |
+## Decided (do not re-litigate in docs)
 
-Moved to roadmap (resolve before production, not Phase 1 build):
-
-- Submit ourselves vs hand clean claim back → [FEATURE_ROADMAP.md](./FEATURE_ROADMAP.md#decisions-resolve-before-phase-1)
-- Which auto-fixes are safe without human approval → same
-- v1 payer rule packs (Delta, MetLife, Cigna) → [research/PAYER_RULES_V1.md](./research/PAYER_RULES_V1.md) — US review pending
+| Question | Decision | Doc |
+|----------|----------|-----|
+| Stack | npm workspaces, Vite, Supabase, TypeScript strict | [BUILD_READINESS.md](./BUILD_READINESS.md) |
+| Operator UX | Work queue first | [USER_FLOWS.md](./architecture/USER_FLOWS.md) |
+| Phase 1 KPI | Clean-claim rate | [PHASE_1_SLICE.md](./architecture/PHASE_1_SLICE.md) |
+| Two apps vs one | `operator` + `owner` | [PHASE_1_SLICE.md](./architecture/PHASE_1_SLICE.md) |
+| Eligibility Phase 1 | Synthetic Onederful adapter; live Vyne later | [STRATEGY_REDTEAM.md](./STRATEGY_REDTEAM.md) |
+| Denial prediction | Moat-first; LLM for reason text only | [STRATEGY_REDTEAM.md](./STRATEGY_REDTEAM.md) |
 
 ## How to resolve
 
-1. Discuss in chat or a short call
-2. Update the **Decision** column here
-3. If it changes build scope, update `PROJECT_OVERVIEW.md` and `BUILD_READINESS.md` in the same PR
+1. Discuss → update **Decision** here
+2. If scope changes, update [PROJECT_OVERVIEW.md](../PROJECT_OVERVIEW.md) in same PR

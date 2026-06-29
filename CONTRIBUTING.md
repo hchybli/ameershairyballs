@@ -8,9 +8,9 @@
 
 ## Before you code
 
-1. [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md) — start here
-2. [docs/architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md) — pick your epic
-3. [docs/architecture/LEGACY_REFERENCE.md](./docs/architecture/LEGACY_REFERENCE.md) — if porting from `src/`
+1. [docs/STATUS.md](./docs/STATUS.md) — what's done / next
+2. [docs/HANDOFF_BUNGAROO.md](./docs/HANDOFF_BUNGAROO.md) — onboarding
+3. [docs/architecture/WORKSTREAMS.md](./docs/architecture/WORKSTREAMS.md) — pick your epic
 
 **Do not add features to the legacy Next.js app (`src/`).** New work goes in `apps/` and `packages/`.
 

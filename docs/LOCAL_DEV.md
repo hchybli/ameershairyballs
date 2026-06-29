@@ -13,7 +13,7 @@ Backstop Phase 1 runs on **Supabase** (Postgres + Auth + Edge Functions) with **
 | `npm run dev` | Kill stale Vite processes, then start **operator** (`:5173`) + **owner** (`:5174`) together |
 | `npm run verify` | Full self-check (edge imports + deno ×5, build, all tests, **smoke**) — fails on first error |
 | `npm run smoke` | Headless synthetic E2E (handlers + RLS + scorecards; requires `.env`) |
-| `npm run deploy:edge` | Run `predeploy:edge`, then deploy all 5 edge functions to `ndgembdlqevybokxikkd` (requires `supabase login`) |
+| `npm run deploy:edge` | Run `predeploy:edge`, then deploy all **7** edge functions to `ndgembdlqevybokxikkd` (requires `supabase login`) |
 | `npm run seed` | Load synthetic tenants + claims (requires `.env`) |
 
 Individual scripts still available: `dev:operator`, `dev:owner`, `check:edge`, `build:apps`, `test`, `test:events`, `test:seed`, `test:handlers`, `fix:edge-imports`.
@@ -55,8 +55,12 @@ npm run deploy:edge   # after verify passes; needs supabase login
 ### Demo flow
 
 1. **Operator** `/upload` — upload `data/synthetic/sample-claims.csv`
-2. **Work queue** `/` — open claim → Approve / Override (reason required)
-3. **Owner** `/` — clean-claim rate KPI + upload `data/synthetic/sample-outcomes.csv`
+2. **Work queue** `/` — open **SYN-CLM-002** or **SYN-CLM-003**
+3. **Claim detail** — eligibility + denial panels load; Approve / Override flags
+4. **Owner** `/` — KPI tiles + drill-down filters (Open flags / All claims)
+5. **Owner** — upload `data/synthetic/sample-outcomes.csv`
+
+Sign in: `npx tsx --env-file=.env scripts/dev-sign-in.ts`
 
 ---
 
@@ -83,8 +87,10 @@ Apps call edge functions via `@backstop/api-client` (JWT from Supabase Auth).
 | `gate-action` | Approve / override → gate events |
 | `ingest-outcomes` | 835 CSV → `outcome.received` + intelligence |
 | `analytics-kpi` | Clean-claim rate + drill-down |
+| `check-eligibility` | Eligibility agent → `eligibility.checked` |
+| `predict-denial` | Denial prediction → `prediction.scored` |
 
-`npm run check:edge` (included in `verify`) validates import paths and runs `deno check` on all five functions — same resolver Supabase deploy uses.
+`npm run check:edge` validates all seven functions.
 
 Manual deno check:
 
@@ -105,12 +111,13 @@ apps/owner          Vite React — KPI dashboard (port 5174)
 packages/events     Event spine + projectors
 packages/handlers   Edge handler logic + browser read-models
 packages/api-client Edge function fetch helper
-packages/agents     Scrub rules
+packages/agents     Scrub + eligibility + denial prediction agents
+packages/tools      Agent tool registry
 packages/integrations  CSV parsers
 packages/db         Supabase client helpers
 packages/analytics  KPI calculations
-packages/ui         Shared design system (WS-06)
-packages/intelligence  Payer moat (WS-07)
+packages/ui         Shared design system
+packages/intelligence  Payer moat
 supabase/functions  Edge function entrypoints
 ```
 
@@ -121,10 +128,10 @@ supabase/functions  Edge function entrypoints
 ## Legacy Next.js prototype
 
 ```bash
-npm run dev:legacy   # http://localhost:3000
+npm run dev:legacy   # http://localhost:3000 — reference only
 ```
 
-See [DEMO_WALKTHROUGH.md](./DEMO_WALKTHROUGH.md). Do not add features here.
+Do not add features. Demo walkthrough archived in [archive/DEMO_WALKTHROUGH.md](./archive/DEMO_WALKTHROUGH.md).
 
 ---
 

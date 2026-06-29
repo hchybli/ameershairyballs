@@ -52,6 +52,6 @@ No change to north star from this sweep. Confirms sequence: billing moat first, 
 | Finding | Proposal |
 |---------|----------|
 | Anthropic tool-use pattern fits `@backstop/tools` + orchestrator | Sonnet for judgment agents; Haiku for extraction; **no keys client-side** — edge/worker only |
-| `eligibility_271.json` referenced in README but **not yet in repo** | Create `data/synthetic/eligibility-onederful-v2.json` as part of WS-AGENTS-01 |
+| Synthetic eligibility fixture | `data/synthetic/eligibility-onederful-v2.json` (WS-AGENTS-01) | Done |
 
 **Proposal (not auto-implemented):** Rules+moat-first denial scoring; LLM optional for narrative reasons; eligibility synthetic adapter before live Vyne OAuth.

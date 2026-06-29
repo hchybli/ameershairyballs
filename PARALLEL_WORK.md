@@ -1,33 +1,35 @@
-# Parallel work (independent of main WS chain)
+# Parallel work (independent branches)
 
-Run these in **separate agent sessions** on the branches noted. Do not block the backend spine on them.
-
----
-
-## Marketing / showcase site
-
-**Branch:** `feature/bungaroo/marketing-site` (off `main`)
-
-**Prompt:**
-
-> Build or refine the public marketing/showcase site only. Do not touch `apps/operator`, `apps/owner`, `supabase/functions`, or legacy `src/` billing app. Synthetic copy only, no PHI.
+Work that does **not** block merge of Phase 1 to `main`. Run in separate agent sessions.
 
 ---
 
-## WS-00 Turborepo migration
+## WS-00 — Turborepo migration
 
-**Branch:** `feature/bungaroo/WS-00-monorepo` (off latest `main` or integration branch)
+**Branch:** `feature/bungaroo/WS-00-monorepo` (off `main`)
 
-**Prompt:**
-
-> Migrate npm workspaces to Turborepo + pnpm per WORKSTREAMS WS-00. Preserve all test scripts and Supabase edge deploy path. Self-verify full test suite + build:apps.
+Migrate npm workspaces → Turborepo + pnpm per [WORKSTREAMS.md](./architecture/WORKSTREAMS.md) WS-00. Preserve `npm run verify` and `deploy:edge`.
 
 ---
 
-## WS-09 E2E demo script
+## WS-09 — E2E demo script
 
-**Branch:** `feature/bungaroo/WS-09-e2e` (off WS-07 tip)
+**Branch:** `feature/bungaroo/WS-09-e2e` (off `main`)
 
-**Prompt:**
+Add `scripts/demo-e2e.sh` documenting upload → scrub → gate → agents → outcomes → KPI. Mark `src/` deprecated.
 
-> Add `scripts/demo-e2e.sh` documenting upload → scrub → gate → outcomes → KPI flow on synthetic credentials. Mark `src/` deprecated in README.
+---
+
+## WS-AGENTS-03 — History import
+
+**Branch:** `feature/bungaroo/WS-AGENTS-03-history-import` (off `main`)
+
+`history.imported` from de-identified Vyne/InsideDesk exports → warm `payer_intelligence`. **No PHI in repo.**
+
+---
+
+## Marketing site (optional)
+
+**Branch:** `feature/bungaroo/marketing-site`
+
+Public showcase only. Do not touch `apps/operator`, `apps/owner`, or `supabase/functions`.

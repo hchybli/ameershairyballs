@@ -1,30 +1,58 @@
-# Synthetic seed fixtures
+# Backstop
 
-Starter test data for the Phase 1 vertical slice. **All data is fake — no real PHI.**
-Drop these in `/packages/integrations/ingest/fixtures` (or wherever B1 expects them).
+Pre-submission dental insurance billing platform. **Synthetic data only** until HIPAA BAAs.
 
-## Files
-- `dentrix_export_claims.csv` — Dentrix-style claim export. Feed to the CSV ingest adapter (B1).
-- `era_835.json` — parsed remittance (ERA) matching the claims above. Feed to the outcome loop (B4).
-  Use this now; the raw X12 parser is Phase 2.
-- `eligibility_271.json` — Onederful-style benefit breakdowns. Feed to the eligibility agent (B4).
-- `sample_835.x12` — tiny raw X12 835 for later EDI-parser testing (Phase 2). Not needed for the slice.
-- `generate.py` — the generator. Re-run to regenerate / extend the set.
+**Stack:** npm workspaces · TypeScript strict · Vite React SPAs · Supabase (Postgres, Auth, Edge Functions, RLS) · event-sourced read models.
 
-## Built-in test scenarios (each claim exercises a specific path)
-| Claim | Scenario | What it tests |
-|-------|----------|---------------|
-| CLM-5001 | clean paid | the happy path end to end |
-| CLM-5002 | D4341 **denied — missing perio chart** | attachment agent + denial → appeal loop |
-| CLM-5003 | D2740 **downcoded** to D2750 (alternate benefit) | downcode detection + payer intelligence |
-| CLM-5004 | D2391 **underpaid** vs contracted rate | underpayment detection (found money) |
-| CLM-5005 | D1110 **frequency denial** | frequency rules + eligibility cross-check |
-| CLM-5006/7/8 | clean paid | volume for KPI tiles |
+---
 
-## Eligibility scenarios
-- PT-1002: Cigna requires a perio chart for D4341 (drives the attachment alert).
-- PT-1003: dual coverage → coordinate benefits.
-- PT-1004: out-of-network → higher patient responsibility.
-- PT-1005: **cleaning frequency exceeded + annual max nearly gone** → "caught before the chair" alert.
+## Quick start
 
-These mirror the click-through demo (Track C) so the demo and the real build tell the same story.
+```bash
+npm install
+cp .env.example .env   # fill Supabase URL + keys
+npm run seed
+npm run dev            # operator :5173 + owner :5174
+npm run verify         # full self-check before shipping
+```
+
+| App | URL | Demo login |
+|-----|-----|------------|
+| Operator | http://localhost:5173 | `operator@demo.backstop.local` / `demo-operator-2026!` |
+| Owner | http://localhost:5174 | `owner@demo.backstop.local` / `demo-owner-2026!` |
+
+Sign in via browser: `npx tsx --env-file=.env scripts/dev-sign-in.ts`
+
+Full guide: [docs/LOCAL_DEV.md](docs/LOCAL_DEV.md)
+
+---
+
+## Documentation
+
+| Need | Doc |
+|------|-----|
+| **Status & what's next** | [docs/STATUS.md](docs/STATUS.md) |
+| **Local dev & deploy** | [docs/LOCAL_DEV.md](docs/LOCAL_DEV.md) |
+| **Product vision** | [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md) · [docs/STRATEGY.md](docs/STRATEGY.md) |
+| **Architecture & workstreams** | [docs/architecture/README.md](docs/architecture/README.md) |
+| **Offshore handoff** | [docs/HANDOFF_BUNGAROO.md](docs/HANDOFF_BUNGAROO.md) |
+| **Open decisions** | [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) |
+| **Synthetic fixtures** | [data/synthetic/README.md](data/synthetic/README.md) |
+
+---
+
+## Repo layout
+
+```
+apps/operator     Work queue + claim gate + agent panels
+apps/owner        KPI command center + drill-down
+packages/*        Domain, events, agents, handlers, UI
+supabase/         Migrations + edge functions
+src/              Legacy Next.js — reference only, do not extend
+```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Branch prefix: `feature/bungaroo/WS-XX-description`.
