@@ -1,0 +1,20 @@
+{
+  "name": "@backstop/handlers",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
+  "dependencies": {
+    "@backstop/agents": "*",
+    "@backstop/analytics": "*",
+    "@backstop/auth": "*",
+    "@backstop/core": "*",
+    "@backstop/db": "*",
+    "@backstop/events": "*",
+    "@backstop/integrations": "*",
+    "@backstop/intelligence": "*"
+  }
+}

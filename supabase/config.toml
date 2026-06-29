@@ -1,0 +1,25 @@
+# Supabase project config — https://supabase.com/docs/guides/local-development/cli/config
+# Linked remote project: ndgembdlqevybokxikkd
+
+project_id = "ndgembdlqevybokxikkd"
+
+# deno.json import map: @backstop/* aliases (paths include .ts). Edge packages use explicit .ts on relative imports — see npm run check:edge.
+[functions.ingest-claims]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.run-scrub]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.gate-action]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.ingest-outcomes]
+verify_jwt = true
+import_map = "./functions/deno.json"
+
+[functions.analytics-kpi]
+verify_jwt = true
+import_map = "./functions/deno.json"

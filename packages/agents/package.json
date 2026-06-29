@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@backstop/core": "*"
+    "@backstop/core": "*",
+    "@backstop/integrations": "*"
   }
 }

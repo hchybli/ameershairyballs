@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+apps/*/node_modules
+packages/*/node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -15,10 +17,17 @@
 
 # production
 /build
+apps/*/dist
+**/dist
 
 # misc
 .DS_Store
 *.pem
+.cursor/settings.json
+
+# stray paste artifact (e.g. apps/operator/#)
+**/\#/
+apps/operator/\#/
 
 # debug
 npm-debug.log*
@@ -35,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# supabase cli temp
+supabase/.temp/

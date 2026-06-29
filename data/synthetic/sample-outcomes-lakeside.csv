@@ -1,0 +1,3 @@
+external_claim_id,result,paid_amount,remark_code,remark_text
+SYN-CLM-L01,paid,50.00,,
+SYN-CLM-L02,denied,0.00,CO-50,Non-covered service

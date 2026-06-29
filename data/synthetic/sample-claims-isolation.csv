@@ -1,0 +1,2 @@
+external_claim_id,patient_ref,payer_name,cdt_code,fee_billed,fee_allowed,tooth,quadrant
+SYN-CLM-ISO-001,SYN-PAT-ISO-001,United Healthcare,D1110,130.00,100.00,,

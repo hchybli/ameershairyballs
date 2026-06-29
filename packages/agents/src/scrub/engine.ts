@@ -3,7 +3,7 @@ import type { ClaimFlag, ScrubResult } from "@backstop/core";
 import {
   attachmentLabel,
   getRequiredAttachments,
-} from "./rules/attachment-rules.js";
+} from "./rules/attachment-rules.ts";
 import {
   AUDIT_RISK_CDT_CODES,
   DEPRECATED_CDT_CODES,
@@ -13,7 +13,7 @@ import {
   QUADRANT_REQUIRED_CDT,
   TOOTH_REQUIRED_CDT,
   VALID_QUADRANTS,
-} from "./rules/cdt-catalog.js";
+} from "./rules/cdt-catalog.ts";
 
 const FEE_LEAKAGE_THRESHOLD = 0.15; // flag when billed >15% below allowed
 

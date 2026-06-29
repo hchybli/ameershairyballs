@@ -1,5 +1,5 @@
 import type { AttachmentKind } from "@backstop/core";
-import { isCrownCode } from "./cdt-catalog.js";
+import { isCrownCode } from "./cdt-catalog.ts";
 
 export interface AttachmentRule {
   cdtCode: string;

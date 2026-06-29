@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev:api & npm run dev:operator & npm run dev:owner",
+    "dev": "bash scripts/dev-all.sh",
     "dev:api": "npm run dev -w @backstop/api",
     "dev:operator": "npm run dev -w @backstop/operator",
     "dev:owner": "npm run dev -w @backstop/owner",
@@ -16,7 +16,18 @@
     "build:apps": "npm run build -w @backstop/operator && npm run build -w @backstop/owner",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx --test src/lib/csv/parse-claims-csv.test.ts src/lib/csv/parse-outcomes-csv.test.ts src/lib/rules/scrub-claim.test.ts"
+    "test": "tsx --test packages/integrations/src/adapters/csv-dentrix.test.ts packages/integrations/src/adapters/csv-835.test.ts packages/integrations/src/adapters/csv-parity.test.ts packages/agents/src/scrub/engine.test.ts packages/agents/src/scrub/flag-parity.test.ts packages/events/src/projectors.test.ts packages/analytics/src/index.test.ts packages/intelligence/src/scorecard.test.ts",
+    "test:seed": "tsx --env-file=.env --test scripts/seed-rls.test.ts",
+    "test:events": "tsx --env-file=.env --test scripts/events-replay.test.ts",
+    "test:handlers": "tsx --env-file=.env --test scripts/handlers.test.ts",
+    "check:edge": "tsx scripts/check-edge-functions.ts",
+    "fix:edge-imports": "tsx scripts/fix-edge-import-extensions.ts",
+    "predeploy:edge": "npm run check:edge",
+    "verify": "tsx scripts/verify-all.ts",
+    "smoke": "tsx --env-file=.env --test scripts/smoke.test.ts",
+    "clickthrough": "tsx --env-file=.env --test scripts/clickthrough.test.ts",
+    "deploy:edge": "bash scripts/deploy-edge.sh",
+    "seed": "tsx --env-file=.env scripts/seed-synthetic.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -1,4 +1,4 @@
-import type { ScrubResult } from "./flag.js";
+import type { ScrubResult } from "./flag.ts";
 
 export interface ParsedClaimLine {
   cdtCode: string;
@@ -36,6 +36,9 @@ export interface QueueRow {
   patientRef: string;
   payerName: string;
   feeTotal: number;
+  dollarImpactAtRisk: number;
+  /** dollarImpactAtRisk × severity weight — higher = work first */
+  priorityScore: number;
   flagsOpen: number;
   topFlagType: string | null;
   topFlagReason: string | null;

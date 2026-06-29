@@ -141,7 +141,74 @@ alter table flags_resolved enable row level security;
 alter table outcomes enable row level security;
 alter table payer_intelligence enable row level security;
 
--- Helper: tenant_id from JWT app_metadata (set by auth hook in implementation)
--- create policy ... using (tenant_id = (auth.jwt() -> 'app_metadata' ->> 'tenant_id')::uuid);
+-- Helper: tenant_id, clinic_id, role from JWT app_metadata (set at signup / seed)
+create or replace function public.auth_tenant_id() returns uuid
+  language sql stable
+  set search_path = public
+  as $$
+    select nullif(auth.jwt() -> 'app_metadata' ->> 'tenant_id', '')::uuid
+  $$;
 
--- Policies to be completed in WS-01 with auth hook documentation.
+create or replace function public.auth_clinic_id() returns uuid
+  language sql stable
+  set search_path = public
+  as $$
+    select nullif(auth.jwt() -> 'app_metadata' ->> 'clinic_id', '')::uuid
+  $$;
+
+create or replace function public.auth_user_role() returns text
+  language sql stable
+  set search_path = public
+  as $$
+    select auth.jwt() -> 'app_metadata' ->> 'role'
+  $$;
+
+-- tenants
+create policy "tenants_select_own" on tenants
+  for select using (id = auth_tenant_id());
+
+-- clinics
+create policy "clinics_select_tenant" on clinics
+  for select using (tenant_id = auth_tenant_id());
+
+-- clinic_members
+create policy "clinic_members_select" on clinic_members
+  for select using (
+    user_id = auth.uid()
+    or clinic_id in (select id from clinics where tenant_id = auth_tenant_id())
+  );
+
+-- events (append-only; clients read, writes via service role / edge functions)
+create policy "events_select_tenant" on events
+  for select using (tenant_id = auth_tenant_id());
+
+revoke update, delete on events from authenticated, anon;
+
+-- claims_current
+create policy "claims_select_tenant" on claims_current
+  for select using (tenant_id = auth_tenant_id());
+
+-- claim_lines_current (via parent claim tenant)
+create policy "claim_lines_select_tenant" on claim_lines_current
+  for select using (
+    exists (
+      select 1 from claims_current c
+      where c.id = claim_lines_current.claim_id
+        and c.tenant_id = auth_tenant_id()
+    )
+  );
+
+-- flags_open / flags_resolved
+create policy "flags_open_select_tenant" on flags_open
+  for select using (tenant_id = auth_tenant_id());
+
+create policy "flags_resolved_select_tenant" on flags_resolved
+  for select using (tenant_id = auth_tenant_id());
+
+-- outcomes
+create policy "outcomes_select_tenant" on outcomes
+  for select using (tenant_id = auth_tenant_id());
+
+-- payer_intelligence
+create policy "payer_intelligence_select_tenant" on payer_intelligence
+  for select using (tenant_id = auth_tenant_id());

@@ -1,0 +1,13 @@
+{
+  "name": "@backstop/events",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@backstop/core": "*",
+    "@backstop/db": "*"
+  }
+}

@@ -4,11 +4,16 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@backstop/auth": ["../../packages/auth/src/index.ts"],
+      "@backstop/db": ["../../packages/db/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

@@ -1,15 +1,15 @@
 # @backstop/intelligence
 
-Payer intelligence moat: `(tenant, payer, cdt) → outcome stats`.
+Payer-intelligence moat — read/write around `payer_intelligence` table.
 
-## Workstream
+## Read APIs
 
-WS-07
+- `readPayerIntelligence(db, tenantId)` — raw CDT × payer rows
+- `buildPayerScorecards(rows)` — per-payer denial rate, downcode frequency, top denial codes
+- `readAvgDaysToPayByPayer(db, tenantId)` — from outcomes × claims join
 
 ## Write path
 
-On `outcome.received` projector → upsert `payer_intelligence`
+Upserts happen via `@backstop/events` projector on `outcome.received` (append-only events → derived read model).
 
-## Read path
-
-Scrub agent queries before flagging frequency/history issues
+See [STRATEGY.md](../../docs/STRATEGY.md) for moat thesis.
